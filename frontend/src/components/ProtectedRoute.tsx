@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { startOidcSignIn } from '../api';
+import { useI18n } from '../context/I18nContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -9,6 +10,7 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const location = useLocation();
+  const { t } = useI18n();
   const {
     isAuthenticated,
     loading,
@@ -26,7 +28,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600 dark:text-gray-400">Redirecting to sign-in...</div>
+        <div className="text-gray-600 dark:text-gray-400">{t("route.redirectingToSignIn")}</div>
       </div>
     );
   };
@@ -34,7 +36,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   if (loading || authEnabled === null) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+        <div className="text-gray-600 dark:text-gray-400">{t("common.loading")}</div>
       </div>
     );
   }

@@ -9,6 +9,7 @@ import { Shield, UserPlus, RefreshCw, UserCog, LogIn, Settings as SettingsIcon, 
 import { Toaster, toast } from 'sonner';
 import { getPasswordPolicy, validatePassword } from '../utils/passwordPolicy';
 import { PasswordRequirements } from '../components/PasswordRequirements';
+import { useI18n } from '../context/I18nContext';
 import {
   IMPERSONATION_KEY,
   type ImpersonationState,
@@ -40,10 +41,91 @@ const sanitizePositiveInt = (value: number, fallback = 1) => {
 };
 
 export const Admin: React.FC = () => {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { user: authUser, authEnabled } = useAuth();
   const isAdmin = authUser?.role === 'ADMIN';
-  const passwordPolicy = getPasswordPolicy();
+  const passwordPolicy = getPasswordPolicy({ translate: t });
+  const text = {
+    loading: t('common.loading'),
+    title: t('admin.title'),
+    subtitle: t('admin.subtitle'),
+    refresh: t('admin.refresh'),
+    newUser: t('admin.newUser'),
+    failedLoadUsers: t('admin.failedLoadUsers'),
+    failedRegistrationStatus: t('admin.failedRegistrationStatus'),
+    registrationEnabled: t('admin.registrationEnabled'),
+    registrationDisabled: t('admin.registrationDisabled'),
+    failedRegistrationUpdate: t('admin.failedRegistrationUpdate'),
+    tempPasswordGeneratedFor: (email: string) => t('admin.tempPasswordGeneratedFor', { email }),
+    failedResetPassword: t('admin.failedResetPassword'),
+    failedRateLimitLoad: t('admin.failedRateLimitLoad'),
+    rateLimitSaved: t('admin.rateLimitSaved'),
+    failedRateLimitSave: t('admin.failedRateLimitSave'),
+    enterIdentifier: t('admin.enterIdentifier'),
+    resetRateLimitSuccess: (identifier: string) => t('admin.resetRateLimitSuccess', { identifier }),
+    failedRateLimitReset: t('admin.failedRateLimitReset'),
+    userCreated: t('admin.userCreated'),
+    failedCreateUser: t('admin.failedCreateUser'),
+    userUpdated: t('admin.userUpdated'),
+    failedUpdateUser: t('admin.failedUpdateUser'),
+    stopCurrentImpersonation: t('admin.stopCurrentImpersonation'),
+    missingSessionState: t('admin.missingSessionState'),
+    unknownAdmin: t('admin.unknownAdmin'),
+    failedImpersonate: t('admin.failedImpersonate'),
+    createUserTitle: t('admin.createUserTitle'),
+    emailAddress: t('admin.emailAddress'),
+    displayName: t('admin.displayName'),
+    username: t('admin.username'),
+    optional: t('admin.optional'),
+    tempPassword: t('admin.tempPassword'),
+    role: t('admin.role'),
+    roleUser: t('admin.roleUser'),
+    roleAdmin: t('admin.roleAdmin'),
+    passwordReset: t('admin.passwordReset'),
+    mustResetPassword: t('admin.mustResetPassword'),
+    noResetRequired: t('admin.noResetRequired'),
+    accountStatus: t('admin.accountStatus'),
+    active: t('admin.active'),
+    inactive: t('admin.inactive'),
+    create: t('admin.create'),
+    userRegistration: t('admin.userRegistration'),
+    userRegistrationEnabledDesc: t('admin.userRegistrationEnabledDesc'),
+    userRegistrationDisabledDesc: t('admin.userRegistrationDisabledDesc'),
+    registration: t('admin.registration'),
+    saving: t('admin.saving'),
+    enabled: t('admin.enabled'),
+    disabled: t('admin.disabled'),
+    loginRateLimiting: t('admin.loginRateLimiting'),
+    loginRateLimitingDesc: t('admin.loginRateLimitingDesc'),
+    rateLimiting: t('admin.rateLimiting'),
+    windowMinutes: t('admin.windowMinutes'),
+    maxAttempts: t('admin.maxAttempts'),
+    resetLockout: t('admin.resetLockout'),
+    resetLockoutPlaceholder: t('admin.resetLockoutPlaceholder'),
+    unsavedChanges: t('admin.unsavedChanges'),
+    allChangesSaved: t('admin.allChangesSaved'),
+    resetting: t('admin.resetting'),
+    reset: t('admin.reset'),
+    users: t('admin.users'),
+    user: t('admin.user'),
+    mustReset: t('admin.mustReset'),
+    actions: t('admin.actions'),
+    yes: t('admin.yes'),
+    no: t('admin.no'),
+    impersonate: t('admin.impersonate'),
+    useProfileForOwnPassword: t('admin.useProfileForOwnPassword'),
+    generateTempPassword: t('admin.generateTempPassword'),
+    generating: t('admin.generating'),
+    resetPassword: t('admin.resetPassword'),
+    noUsersFound: t('admin.noUsersFound'),
+    startImpersonation: t('admin.startImpersonation'),
+    impersonationConfirm: (email: string) => t('admin.impersonationConfirm', { email }),
+    tempPasswordTitle: t('admin.tempPasswordTitle'),
+    tempPasswordDesc: (email: string) => t('admin.tempPasswordDesc', { email }),
+    copy: t('admin.copy'),
+    close: t('admin.close'),
+  };
 
   const [collections, setCollections] = useState<Collection[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -124,7 +206,7 @@ export const Admin: React.FC = () => {
       const response = await api.api.get<{ users: AdminUser[] }>('/auth/users');
       setUsers(response.data.users || []);
     } catch (err: unknown) {
-      let message = 'Failed to load users';
+      let message = text.failedLoadUsers;
       if (api.isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
       }
@@ -140,7 +222,7 @@ export const Admin: React.FC = () => {
       const response = await api.api.get<{ registrationEnabled: boolean }>('/auth/status');
       setRegistrationEnabled(Boolean(response.data.registrationEnabled));
     } catch (err: unknown) {
-      let message = 'Failed to load registration status';
+      let message = text.failedRegistrationStatus;
       if (api.isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
       }
@@ -162,9 +244,9 @@ export const Admin: React.FC = () => {
         enabled: !registrationEnabled,
       });
       setRegistrationEnabled(Boolean(response.data.registrationEnabled));
-      setSuccess(response.data.registrationEnabled ? 'Registration enabled' : 'Registration disabled');
+      setSuccess(response.data.registrationEnabled ? text.registrationEnabled : text.registrationDisabled);
     } catch (err: unknown) {
-      let message = 'Failed to update registration setting';
+      let message = text.failedRegistrationUpdate;
       if (api.isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
       }
@@ -183,10 +265,10 @@ export const Admin: React.FC = () => {
         `/auth/users/${target.id}/reset-password`
       );
       setResetPasswordResult({ email: response.data.user?.email || target.email, tempPassword: response.data.tempPassword });
-      setSuccess(`Temporary password generated for ${target.email}`);
+      setSuccess(text.tempPasswordGeneratedFor(target.email));
       await loadUsers();
     } catch (err: unknown) {
-      let message = 'Failed to reset password';
+      let message = text.failedResetPassword;
       if (api.isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
       }
@@ -217,7 +299,7 @@ export const Admin: React.FC = () => {
       setLoginRateLimitMax(nextConfig.max);
       setSavedLoginRateLimit(nextConfig);
     } catch (err: unknown) {
-      let message = 'Failed to load rate limit config';
+      let message = text.failedRateLimitLoad;
       if (api.isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
       }
@@ -252,9 +334,9 @@ export const Admin: React.FC = () => {
       setLoginRateLimitMax(nextConfig.max);
       setSavedLoginRateLimit(nextConfig);
       setLoginRateLimitAutoSaveQueued(false);
-      toast.success('Login rate limit changes saved');
+      toast.success(text.rateLimitSaved);
     } catch (err: unknown) {
-      let message = 'Failed to save rate limit config';
+      let message = text.failedRateLimitSave;
       if (api.isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
       }
@@ -267,7 +349,7 @@ export const Admin: React.FC = () => {
   const resetLoginRateLimit = async () => {
     const identifier = resetIdentifier.trim();
     if (!identifier) {
-      setError('Enter an email/username to reset');
+      setError(text.enterIdentifier);
       return;
     }
     setResetLoading(true);
@@ -275,10 +357,10 @@ export const Admin: React.FC = () => {
     setSuccess('');
     try {
       await api.api.post('/auth/rate-limit/login/reset', { identifier });
-      setSuccess(`Reset login rate limit for ${identifier}`);
+      setSuccess(text.resetRateLimitSuccess(identifier));
       setResetIdentifier('');
     } catch (err: unknown) {
-      let message = 'Failed to reset rate limit';
+      let message = text.failedRateLimitReset;
       if (api.isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
       }
@@ -385,7 +467,7 @@ export const Admin: React.FC = () => {
 
       const response = await api.api.post<{ user: AdminUser }>('/auth/users', payload);
       setUsers(prev => [...prev, response.data.user].sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
-      setSuccess('User created');
+      setSuccess(text.userCreated);
       setCreateEmail('');
       setCreateName('');
       setCreateUsername('');
@@ -395,7 +477,7 @@ export const Admin: React.FC = () => {
       setCreateActive(true);
       setCreateOpen(false);
     } catch (err: unknown) {
-      let message = 'Failed to create user';
+      let message = text.failedCreateUser;
       if (api.isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
       }
@@ -409,9 +491,9 @@ export const Admin: React.FC = () => {
     try {
       const response = await api.api.patch<{ user: AdminUser }>(`/auth/users/${id}`, data);
       setUsers(prev => prev.map(u => (u.id === id ? response.data.user : u)));
-      setSuccess('User updated');
+      setSuccess(text.userUpdated);
     } catch (err: unknown) {
-      let message = 'Failed to update user';
+      let message = text.failedUpdateUser;
       if (api.isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
       }
@@ -424,13 +506,13 @@ export const Admin: React.FC = () => {
     setSuccess('');
 
     if (readImpersonationState()) {
-      setError('Stop the current impersonation before starting a new one.');
+      setError(text.stopCurrentImpersonation);
       return;
     }
 
     const originalUser = localStorage.getItem(USER_KEY);
     if (!originalUser) {
-      setError('Missing current session user state.');
+      setError(text.missingSessionState);
       return;
     }
 
@@ -446,7 +528,7 @@ export const Admin: React.FC = () => {
         impersonator: {
           id: authUser?.id || 'unknown',
           email: authUser?.email || 'unknown',
-          name: authUser?.name || 'Unknown Admin',
+          name: authUser?.name || text.unknownAdmin,
         },
         target: {
           id: response.data.user.id,
@@ -461,7 +543,7 @@ export const Admin: React.FC = () => {
 
       window.location.href = '/';
     } catch (err: unknown) {
-      let message = 'Failed to impersonate user';
+      let message = text.failedImpersonate;
       if (api.isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
       }
@@ -472,7 +554,7 @@ export const Admin: React.FC = () => {
   if (authEnabled === null) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+        <div className="text-gray-600 dark:text-gray-400">{text.loading}</div>
       </div>
     );
   }
@@ -489,10 +571,10 @@ export const Admin: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6 sm:mb-8 min-w-0">
         <div className="min-w-0">
           <h1 className="text-3xl sm:text-5xl text-slate-900 dark:text-white pl-1" style={{ fontFamily: 'Excalifont' }}>
-            Admin
+            {text.title}
           </h1>
           <p className="mt-2 text-sm text-slate-600 dark:text-neutral-400 font-medium">
-            User management and impersonation
+            {text.subtitle}
           </p>
         </div>
 
@@ -503,14 +585,14 @@ export const Admin: React.FC = () => {
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-xl border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-neutral-200 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 transition-all disabled:opacity-60"
           >
             <RefreshCw size={16} />
-            Refresh
+            {text.refresh}
           </button>
           <button
             onClick={() => setCreateOpen(v => !v)}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-xl border-2 border-black dark:border-neutral-700 bg-indigo-600 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all"
           >
             <UserPlus size={16} />
-            New User
+            {text.newUser}
           </button>
         </div>
       </div>
@@ -532,12 +614,12 @@ export const Admin: React.FC = () => {
             <div className="w-12 h-12 bg-indigo-50 dark:bg-neutral-800 rounded-xl flex items-center justify-center border-2 border-indigo-100 dark:border-neutral-700">
               <UserCog size={24} className="text-indigo-600 dark:text-indigo-400" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Create User</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{text.createUserTitle}</h2>
           </div>
 
           <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">Email</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">{text.emailAddress}</label>
               <input
                 type="email"
                 value={createEmail}
@@ -548,7 +630,7 @@ export const Admin: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">Name</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">{text.displayName}</label>
               <input
                 type="text"
                 value={createName}
@@ -559,7 +641,7 @@ export const Admin: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">Username (optional)</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">{text.username} ({text.optional})</label>
               <input
                 type="text"
                 value={createUsername}
@@ -569,7 +651,7 @@ export const Admin: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">Temporary Password</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">{text.tempPassword}</label>
               <input
                 type="password"
                 value={createPassword}
@@ -588,20 +670,20 @@ export const Admin: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">Role</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">{text.role}</label>
               <select
                 value={createRole}
                 onChange={e => setCreateRole(e.target.value as 'ADMIN' | 'USER')}
                 className="w-full px-4 py-3 bg-white dark:bg-neutral-800 border-2 border-slate-200 dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white outline-none"
               >
-                <option value="USER">USER</option>
-                <option value="ADMIN">ADMIN</option>
+                <option value="USER">{text.roleUser}</option>
+                <option value="ADMIN">{text.roleAdmin}</option>
               </select>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
               <div className="flex-1 w-full">
-                <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">Password Reset</label>
+                <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">{text.passwordReset}</label>
                 <button
                   type="button"
                   onClick={() => setCreateMustReset(!createMustReset)}
@@ -611,11 +693,11 @@ export const Admin: React.FC = () => {
                       : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300'
                   }`}
                 >
-                  {createMustReset ? 'Must reset password' : 'No reset required'}
+                  {createMustReset ? text.mustResetPassword : text.noResetRequired}
                 </button>
               </div>
               <div className="flex-1 w-full">
-                <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">Account Status</label>
+                <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">{text.accountStatus}</label>
                 <button
                   type="button"
                   onClick={() => setCreateActive(!createActive)}
@@ -625,7 +707,7 @@ export const Admin: React.FC = () => {
                       : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300'
                   }`}
                 >
-                  {createActive ? 'Active' : 'Inactive'}
+                  {createActive ? text.active : text.inactive}
                 </button>
               </div>
             </div>
@@ -636,13 +718,13 @@ export const Admin: React.FC = () => {
                 onClick={() => setCreateOpen(false)}
                 className="px-4 py-2 text-sm font-bold rounded-xl border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-neutral-200"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 type="submit"
                 className="px-4 py-2 text-sm font-bold rounded-xl border-2 border-black dark:border-neutral-700 bg-indigo-600 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all"
               >
-                Create
+                {text.create}
               </button>
             </div>
           </form>
@@ -655,20 +737,20 @@ export const Admin: React.FC = () => {
             <UserPlus size={24} className="text-emerald-700 dark:text-emerald-300" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">User Registration</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{text.userRegistration}</h2>
             <p className="text-sm text-slate-600 dark:text-neutral-400 font-medium">
               {registrationEnabled === null
-                ? 'Loading…'
+                ? text.loading
                 : registrationEnabled
-                  ? 'New users can create accounts.'
-                  : 'Registration is disabled.'}
+                  ? text.userRegistrationEnabledDesc
+                  : text.userRegistrationDisabledDesc}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">Registration</label>
+            <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">{text.registration}</label>
             <button
               type="button"
               onClick={() => void toggleRegistration()}
@@ -679,7 +761,7 @@ export const Admin: React.FC = () => {
                   : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300'
               }`}
             >
-              {registrationEnabled === null ? 'Loading…' : registrationLoading ? 'Saving…' : registrationEnabled ? 'Enabled' : 'Disabled'}
+              {registrationEnabled === null ? text.loading : registrationLoading ? text.saving : registrationEnabled ? text.enabled : text.disabled}
             </button>
           </div>
         </div>
@@ -691,19 +773,19 @@ export const Admin: React.FC = () => {
             <SettingsIcon size={24} className="text-slate-700 dark:text-neutral-200" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Login Rate Limiting</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{text.loginRateLimiting}</h2>
             <p className="text-sm text-slate-600 dark:text-neutral-400 font-medium">
-              Reduce brute-force attacks; disable only for trusted environments. Changes are saved automatically.
+              {text.loginRateLimitingDesc}
             </p>
           </div>
           {loginRateLimitLoading && (
-            <span className="ml-auto text-sm text-slate-500 dark:text-neutral-500 font-medium">Loading…</span>
+            <span className="ml-auto text-sm text-slate-500 dark:text-neutral-500 font-medium">{text.loading}</span>
           )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">Rate Limiting</label>
+            <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">{text.rateLimiting}</label>
             <button
               type="button"
               onClick={() => setLoginRateLimitEnabled(!loginRateLimitEnabled)}
@@ -713,11 +795,11 @@ export const Admin: React.FC = () => {
                   : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300'
               }`}
             >
-              {loginRateLimitEnabled ? 'Enabled' : 'Disabled'}
+              {loginRateLimitEnabled ? text.enabled : text.disabled}
             </button>
           </div>
           <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">Window (minutes)</label>
+            <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">{text.windowMinutes}</label>
             <input
               type="number"
               min={1}
@@ -727,7 +809,7 @@ export const Admin: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">Max attempts</label>
+            <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">{text.maxAttempts}</label>
             <input
               type="number"
               min={1}
@@ -741,13 +823,13 @@ export const Admin: React.FC = () => {
         <div className="mt-4 flex flex-col lg:flex-row lg:items-end justify-between gap-4">
           <div className="min-w-0 flex-1">
             <label className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">
-              Reset lockout (email/username)
+              {text.resetLockout}
             </label>
             <input
               list="admin-user-identifiers"
               value={resetIdentifier}
               onChange={e => setResetIdentifier(e.target.value)}
-              placeholder="user@example.com"
+              placeholder={text.resetLockoutPlaceholder}
               className="w-full px-4 py-3 bg-white dark:bg-neutral-800 border-2 border-slate-200 dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white outline-none"
             />
             <datalist id="admin-user-identifiers">
@@ -759,17 +841,17 @@ export const Admin: React.FC = () => {
           <div className="flex items-center gap-3 flex-shrink-0">
             <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-neutral-400">
               {loginRateLimitSaving || loginRateLimitAutoSaveQueued
-                ? 'Saving changes…'
+                ? text.saving
                 : loginRateLimitDirty
-                  ? 'Unsaved changes'
-                  : 'All changes saved'}
+                  ? text.unsavedChanges
+                  : text.allChangesSaved}
             </p>
             <button
               onClick={() => void resetLoginRateLimit()}
               disabled={resetLoading}
               className="px-4 py-2 text-sm font-bold rounded-xl border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-neutral-200 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 transition-all disabled:opacity-60"
             >
-              {resetLoading ? 'Resetting…' : 'Reset'}
+              {resetLoading ? text.resetting : text.reset}
             </button>
           </div>
         </div>
@@ -780,19 +862,19 @@ export const Admin: React.FC = () => {
           <div className="w-10 h-10 bg-indigo-50 dark:bg-neutral-800 rounded-xl flex items-center justify-center border-2 border-indigo-100 dark:border-neutral-700">
             <Shield size={20} className="text-indigo-600 dark:text-indigo-400" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Users</h2>
-          {loadingUsers && <span className="text-sm text-slate-500 dark:text-neutral-500 font-medium">Loading…</span>}
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">{text.users}</h2>
+          {loadingUsers && <span className="text-sm text-slate-500 dark:text-neutral-500 font-medium">{text.loading}</span>}
         </div>
 
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="bg-slate-50 dark:bg-neutral-800/70">
               <tr className="text-left">
-                <th className="px-4 sm:px-6 py-3 font-bold text-slate-600 dark:text-neutral-300">User</th>
-                <th className="px-4 sm:px-6 py-3 font-bold text-slate-600 dark:text-neutral-300">Role</th>
-                <th className="px-4 sm:px-6 py-3 font-bold text-slate-600 dark:text-neutral-300">Active</th>
-                <th className="px-4 sm:px-6 py-3 font-bold text-slate-600 dark:text-neutral-300">Must Reset</th>
-                <th className="px-4 sm:px-6 py-3 font-bold text-slate-600 dark:text-neutral-300">Actions</th>
+                <th className="px-4 sm:px-6 py-3 font-bold text-slate-600 dark:text-neutral-300">{text.user}</th>
+                <th className="px-4 sm:px-6 py-3 font-bold text-slate-600 dark:text-neutral-300">{text.role}</th>
+                <th className="px-4 sm:px-6 py-3 font-bold text-slate-600 dark:text-neutral-300">{text.active}</th>
+                <th className="px-4 sm:px-6 py-3 font-bold text-slate-600 dark:text-neutral-300">{text.mustReset}</th>
+                <th className="px-4 sm:px-6 py-3 font-bold text-slate-600 dark:text-neutral-300">{text.actions}</th>
               </tr>
             </thead>
             <tbody>
@@ -810,8 +892,8 @@ export const Admin: React.FC = () => {
                       disabled={u.id === authUser?.id}
                       className="px-3 py-2 bg-white dark:bg-neutral-800 border-2 border-slate-200 dark:border-neutral-700 rounded-xl font-bold text-slate-900 dark:text-white"
                     >
-                      <option value="USER">USER</option>
-                      <option value="ADMIN">ADMIN</option>
+                      <option value="USER">{text.roleUser}</option>
+                      <option value="ADMIN">{text.roleAdmin}</option>
                     </select>
                   </td>
                   <td className="px-4 sm:px-6 py-4">
@@ -824,7 +906,7 @@ export const Admin: React.FC = () => {
                           : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300'
                       }`}
                     >
-                      {u.isActive ? 'Active' : 'Inactive'}
+                      {u.isActive ? text.active : text.inactive}
                     </button>
                   </td>
                   <td className="px-4 sm:px-6 py-4">
@@ -836,7 +918,7 @@ export const Admin: React.FC = () => {
                           : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-600 dark:text-neutral-300'
                       }`}
                     >
-                      {u.mustResetPassword ? 'Yes' : 'No'}
+                      {u.mustResetPassword ? text.yes : text.no}
                     </button>
                   </td>
                   <td className="px-4 sm:px-6 py-4">
@@ -846,16 +928,16 @@ export const Admin: React.FC = () => {
                         className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-neutral-200 font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 transition-all"
                       >
                         <LogIn size={16} />
-                        Impersonate
+                        {text.impersonate}
                       </button>
                       <button
                         onClick={() => void generateTempPassword(u)}
                         disabled={u.id === authUser?.id || resetPasswordLoadingId === u.id}
                         className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 text-slate-900 dark:text-neutral-200 font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 transition-all disabled:opacity-60 disabled:hover:translate-y-0"
-                        title={u.id === authUser?.id ? 'Use Profile → Change Password for your own account' : 'Generate a temporary password'}
+                        title={u.id === authUser?.id ? text.useProfileForOwnPassword : text.generateTempPassword}
                       >
                         <KeyRound size={16} />
-                        {resetPasswordLoadingId === u.id ? 'Generating…' : 'Reset Password'}
+                        {resetPasswordLoadingId === u.id ? text.generating : text.resetPassword}
                       </button>
                     </div>
                   </td>
@@ -864,7 +946,7 @@ export const Admin: React.FC = () => {
               {users.length === 0 && !loadingUsers && (
                 <tr>
                   <td colSpan={5} className="px-6 py-6 text-slate-500 dark:text-neutral-500 font-medium">
-                    No users found.
+                    {text.noUsersFound}
                   </td>
                 </tr>
               )}
@@ -875,13 +957,13 @@ export const Admin: React.FC = () => {
 
       <ConfirmModal
         isOpen={!!impersonateTarget}
-        title="Start impersonation?"
+        title={text.startImpersonation}
         message={
           impersonateTarget
-            ? `You will act as ${impersonateTarget.email} until you stop impersonation. Continue?`
+            ? text.impersonationConfirm(impersonateTarget.email)
             : ''
         }
-        confirmText="Impersonate"
+        confirmText={text.impersonate}
         onConfirm={() => {
           if (impersonateTarget) {
             void startImpersonation(impersonateTarget);
@@ -893,12 +975,12 @@ export const Admin: React.FC = () => {
 
       <ConfirmModal
         isOpen={!!resetPasswordResult}
-        title="Temporary password"
+        title={text.tempPasswordTitle}
         message={
           resetPasswordResult ? (
             <div className="space-y-3">
               <div className="text-xs">
-                Temporary password for <span className="font-bold text-slate-900 dark:text-neutral-100">{resetPasswordResult.email}</span>. They will be prompted to set a new password after signing in.
+                {text.tempPasswordDesc(resetPasswordResult.email)}
               </div>
               <div className="px-3 py-2 rounded-xl border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 font-mono text-sm text-slate-900 dark:text-neutral-100 break-all">
                 {resetPasswordResult.tempPassword}
@@ -908,8 +990,8 @@ export const Admin: React.FC = () => {
             ''
           )
         }
-        confirmText="Copy"
-        cancelText="Close"
+        confirmText={text.copy}
+        cancelText={text.close}
         isDangerous={false}
         variant="success"
         onConfirm={() => {

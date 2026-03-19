@@ -4,10 +4,12 @@ import { AlertTriangle, Shield, ShieldOff } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { useAuth } from '../context/AuthContext';
 import * as api from '../api';
+import { useI18n } from '../context/I18nContext';
 
 type Step = 'choice' | 'confirm-disable';
 
 export const AuthSetupChoice: React.FC = () => {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const {
     loading: authLoading,
@@ -67,7 +69,7 @@ export const AuthSetupChoice: React.FC = () => {
 
       window.location.href = '/';
     } catch (err: unknown) {
-      let message = 'Failed to apply authentication choice';
+      let message = t("auth.applyChoiceFailed");
       if (api.isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
       }
@@ -79,7 +81,7 @@ export const AuthSetupChoice: React.FC = () => {
   if (authLoading || authEnabled === null || !authOnboardingRequired) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+        <div className="text-gray-600 dark:text-gray-400">{t("common.loading")}</div>
       </div>
     );
   }
@@ -90,14 +92,14 @@ export const AuthSetupChoice: React.FC = () => {
         <div className="text-center mb-8">
           <Logo className="mx-auto h-12 w-auto" />
           <h1 className="mt-6 text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">
-            {step === 'choice' ? 'Choose Authentication Mode' : 'Keep Authentication Disabled?'}
+            {step === 'choice' ? t("auth.chooseMode") : t("auth.keepDisabled")}
           </h1>
           <p className="mt-4 text-sm sm:text-base text-gray-600 dark:text-gray-300">
             {step === 'choice'
               ? isMigrationMode
-                ? 'We detected existing data from an earlier ExcaliDash version.'
-                : 'This looks like a new ExcaliDash setup.'
-              : 'This option is only recommended for private, trusted networks.'}
+                ? t("auth.migrationDetected")
+                : t("auth.newSetupDetected")
+              : t("auth.privateNetworkOnly")}
           </p>
         </div>
 
@@ -111,17 +113,17 @@ export const AuthSetupChoice: React.FC = () => {
           {step === 'choice' ? (
             <>
               <div className="mb-6 rounded-lg border border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 p-4 text-sm text-slate-700 dark:text-neutral-200">
-                <div className="font-semibold mb-1">Enable authentication now?</div>
-                <div>If enabled, users must sign in and you will set up the first admin account.</div>
+                <div className="font-semibold mb-1">{t("auth.enableNow")}</div>
+                <div>{t("auth.enableNowDesc")}</div>
               </div>
 
               <div className="mb-6 rounded-lg border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-900/20 p-4 text-sm text-emerald-800 dark:text-emerald-200">
-                Recommendation: choose <strong>Enable Authentication</strong>.
+                {t("auth.recommendEnable")}
               </div>
 
               {isMigrationMode && (
                 <div className="mb-6 rounded-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20 p-4 text-sm text-blue-800 dark:text-blue-200">
-                  ExcaliDash v0.4 adds multi-user and OIDC support. Enabling authentication secures upgraded instances before sharing access.
+                  {t("auth.migrationExplain")}
                 </div>
               )}
 
@@ -135,7 +137,7 @@ export const AuthSetupChoice: React.FC = () => {
                   className="flex items-center justify-center gap-2 rounded-xl border-2 border-black bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all disabled:opacity-60"
                 >
                   <Shield size={18} />
-                  Enable Authentication
+                  {t("auth.enableAuthentication")}
                 </button>
 
                 <button
@@ -145,7 +147,7 @@ export const AuthSetupChoice: React.FC = () => {
                   className="flex items-center justify-center gap-2 rounded-xl border-2 border-black bg-white dark:bg-neutral-800 px-4 py-3 text-sm font-bold text-gray-900 dark:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all disabled:opacity-60"
                 >
                   <ShieldOff size={18} />
-                  Keep Disabled
+                  {t("auth.keepAuthenticationDisabled")}
                 </button>
               </div>
             </>
@@ -155,8 +157,7 @@ export const AuthSetupChoice: React.FC = () => {
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
                   <div>
-                    With authentication disabled, anyone who can access this instance can use all data and settings.
-                    They can also enable authentication themselves and lock you out.
+                    {t("auth.disableWarning")}
                   </div>
                 </div>
               </div>
@@ -168,7 +169,7 @@ export const AuthSetupChoice: React.FC = () => {
                   onClick={() => setStep('choice')}
                   className="rounded-xl border-2 border-black bg-white dark:bg-neutral-800 px-4 py-3 text-sm font-bold text-gray-900 dark:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all disabled:opacity-60"
                 >
-                  Go Back
+                  {t("auth.goBack")}
                 </button>
 
                 <button
@@ -179,7 +180,7 @@ export const AuthSetupChoice: React.FC = () => {
                   }}
                   className="rounded-xl border-2 border-black bg-rose-600 px-4 py-3 text-sm font-bold text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all disabled:opacity-60"
                 >
-                  Confirm Disable Authentication
+                  {t("auth.confirmDisableAuthentication")}
                 </button>
               </div>
             </>

@@ -6,8 +6,10 @@ import * as api from '../api';
 import { USER_KEY } from '../utils/impersonation';
 import { getPasswordPolicy, validatePassword } from '../utils/passwordPolicy';
 import { PasswordRequirements } from '../components/PasswordRequirements';
+import { useI18n } from '../context/I18nContext';
 
 export const Login: React.FC = () => {
+  const { t, language } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -34,12 +36,12 @@ export const Login: React.FC = () => {
   const oidcErrorMessage = searchParams.get('oidcErrorMessage');
   const oidcReturnTo = searchParams.get('returnTo') || '/';
   const mustReset = Boolean(user?.mustResetPassword) || queryMustReset;
-  const passwordPolicy = getPasswordPolicy();
+  const passwordPolicy = getPasswordPolicy({ translate: t });
 
   useEffect(() => {
     if (!oidcErrorCode) return;
-    setError(oidcErrorMessage || 'OIDC sign-in failed');
-  }, [oidcErrorCode, oidcErrorMessage]);
+    setError(oidcErrorMessage || t("auth.oidcFailed"));
+  }, [oidcErrorCode, oidcErrorMessage, t]);
 
   useEffect(() => {
     if (authLoading || authEnabled === null) return;
@@ -93,7 +95,7 @@ export const Login: React.FC = () => {
       }
       navigate('/');
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to login';
+      const message = err instanceof Error ? err.message : t("auth.loginFailed");
       setError(message);
     } finally {
       setLoading(false);
@@ -105,7 +107,7 @@ export const Login: React.FC = () => {
     setError('');
 
     if (!newPassword || !confirmNewPassword) {
-      setError('Please enter and confirm a new password');
+      setError(t("auth.enterAndConfirmPassword"));
       return;
     }
     const passwordError = validatePassword(newPassword, passwordPolicy);
@@ -114,7 +116,7 @@ export const Login: React.FC = () => {
       return;
     }
     if (newPassword !== confirmNewPassword) {
-      setError('New passwords do not match');
+      setError(t("auth.newPasswordsDoNotMatch"));
       return;
     }
 
@@ -128,7 +130,7 @@ export const Login: React.FC = () => {
 
       window.location.href = '/';
     } catch (err: unknown) {
-      let message = 'Failed to reset password';
+      let message = t("auth.resetPasswordFailed");
       if (api.isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
       }
@@ -139,16 +141,16 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4" data-language={language}>
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <Logo className="mx-auto h-12 w-auto" />
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
             {mustReset
-              ? 'Reset your password'
+              ? t("auth.resetPassword")
               : oidcEnforced
-                ? `Sign in with ${oidcProvider || 'OIDC'}`
-                : 'Sign in to your account'}
+                ? t("auth.signInWithProvider", { provider: oidcProvider || 'OIDC' })
+                : t("auth.signInToAccount")}
           </h2>
           {!mustReset && !oidcEnforced ? (
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -157,16 +159,16 @@ export const Login: React.FC = () => {
                 to="/register"
                 className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
               >
-                create a new account
+                {t("auth.createNewAccount")}
               </Link>
             </p>
           ) : mustReset ? (
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              Your admin requires you to set a new password before using ExcaliDash.
+              {t("auth.adminRequiresNewPassword")}
             </p>
           ) : (
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              You will be redirected to {oidcProvider || 'your identity provider'}.
+              {t("auth.redirectToProvider", { provider: oidcProvider || 'your identity provider' })}
             </p>
           )}
         </div>
@@ -183,7 +185,7 @@ export const Login: React.FC = () => {
                 onClick={() => api.startOidcSignIn(oidcReturnTo)}
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Continue with {oidcProvider || 'OIDC'}
+                {t("auth.continueWithProvider", { provider: oidcProvider || 'OIDC' })}
               </button>
             </div>
           ) : (
@@ -193,7 +195,7 @@ export const Login: React.FC = () => {
                 <>
                   <div>
                     <label htmlFor="email" className="sr-only">
-                      Email address
+                      {t("auth.emailAddress")}
                     </label>
                     <input
                       id="email"
@@ -202,14 +204,14 @@ export const Login: React.FC = () => {
                       autoComplete="email"
                       required
                       className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-gray-800 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                      placeholder="Email address"
+                      placeholder={t("auth.emailAddress")}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <div>
                     <label htmlFor="password" className="sr-only">
-                      Password
+                      {t("auth.password")}
                     </label>
                     <input
                       id="password"
@@ -218,7 +220,7 @@ export const Login: React.FC = () => {
                       autoComplete="current-password"
                       required
                       className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-gray-800 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                      placeholder="Password"
+                      placeholder={t("auth.password")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
@@ -228,7 +230,7 @@ export const Login: React.FC = () => {
                 <>
                   <div>
                     <label htmlFor="newPassword" className="sr-only">
-                      New password
+                      {t("auth.newPassword")}
                     </label>
                     <input
                       id="newPassword"
@@ -240,14 +242,14 @@ export const Login: React.FC = () => {
                       maxLength={passwordPolicy.maxLength}
                       pattern={passwordPolicy.patternHtml}
                       className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-gray-800 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                      placeholder="New password"
+                      placeholder={t("auth.newPassword")}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                     />
                   </div>
                   <div>
                     <label htmlFor="confirmNewPassword" className="sr-only">
-                      Confirm new password
+                      {t("auth.confirmNewPassword")}
                     </label>
                     <input
                       id="confirmNewPassword"
@@ -258,7 +260,7 @@ export const Login: React.FC = () => {
                       minLength={passwordPolicy.minLength}
                       maxLength={passwordPolicy.maxLength}
                       className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-gray-800 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                      placeholder="Confirm new password"
+                      placeholder={t("auth.confirmNewPassword")}
                       value={confirmNewPassword}
                       onChange={(e) => setConfirmNewPassword(e.target.value)}
                     />
@@ -282,7 +284,7 @@ export const Login: React.FC = () => {
                 to="/reset-password"
                 className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
               >
-                Forgot your password?
+                {t("auth.forgotPassword")}
               </Link>
             </div>
           )}
@@ -295,8 +297,8 @@ export const Login: React.FC = () => {
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {mustReset
-                  ? (loading ? 'Updating...' : 'Set new password')
-                  : (loading ? 'Signing in...' : 'Sign in')}
+                  ? (loading ? t("auth.updating") : t("auth.setNewPassword"))
+                  : (loading ? t("auth.signingIn") : t("auth.signIn"))}
               </button>
             </div>
           )}
@@ -308,7 +310,7 @@ export const Login: React.FC = () => {
                 onClick={() => api.startOidcSignIn('/')}
                 className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-700 text-sm font-medium rounded-md text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Continue with {oidcProvider || 'OIDC'}
+                {t("auth.continueWithProvider", { provider: oidcProvider || 'OIDC' })}
               </button>
             </div>
           )}
@@ -324,7 +326,7 @@ export const Login: React.FC = () => {
                 }}
                 className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
               >
-                Sign in as a different user
+                {t("auth.signInDifferentUser")}
               </button>
             </div>
           )}

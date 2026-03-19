@@ -26,6 +26,7 @@ import type { ElementVersionInfo } from './editor/shared';
 import { useEditorChrome } from './editor/useEditorChrome';
 import { useEditorIdentity } from './editor/useEditorIdentity';
 import { ShareModal } from '../components/ShareModal';
+import { useI18n } from '../context/I18nContext';
 
 interface Peer extends UserIdentity {
   isActive: boolean;
@@ -80,6 +81,7 @@ export const Editor: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme } = useTheme();
+  const { t, excalidrawLangCode } = useI18n();
   const { user } = useAuth();
   const autoHideStorageKey = id ? `excalidash:editor:${id}:autoHideEnabled` : null;
   const getStoredAutoHideEnabled = useCallback((): boolean => {
@@ -94,7 +96,7 @@ export const Editor: React.FC = () => {
   }, [autoHideStorageKey]);
   const [accessLevel, setAccessLevel] = useState<"none" | "view" | "edit" | "owner">("none");
   const canEdit = accessLevel === "edit" || accessLevel === "owner";
-  const [drawingName, setDrawingName] = useState('Drawing Editor');
+  const [drawingName, setDrawingName] = useState(t("editor.drawingEditor"));
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState('');
   const [initialData, setInitialData] = useState<any>(null);
@@ -450,7 +452,7 @@ export const Editor: React.FC = () => {
         navigate(`/shared/${id}${location.search}${location.hash}`, { replace: true });
         return;
       }
-      if (message) toast.error(message);
+          if (message) toast.error(message);
     });
 
     socket.on('cursor-move', (data: any) => {
@@ -1212,7 +1214,7 @@ export const Editor: React.FC = () => {
         });
       } catch (err) {
         console.error('Failed to load drawing', err);
-        let message = "Failed to load drawing";
+        let message = t("editor.failedLoad");
         if (api.isAxiosError(err)) {
           const responseMessage =
             typeof err.response?.data?.message === "string"
@@ -1221,9 +1223,9 @@ export const Editor: React.FC = () => {
           if (responseMessage) {
             message = responseMessage;
           } else if (err.response?.status === 403) {
-            message = "You do not have access to this drawing";
+            message = t("editor.noAccess");
           } else if (err.response?.status === 404) {
-            message = "Drawing not found";
+            message = t("editor.notFound");
           }
 
           // When a link-shared drawing URL is opened via `/editor/:id` by a signed-in user who
@@ -1291,7 +1293,7 @@ export const Editor: React.FC = () => {
           if (!id) return;
           await enqueueSceneSave(id, safeElements, appState, files);
           savePreviewRef.current(id, safeElements, appState, files);
-          toast.success("Saved changes to server");
+        toast.success(t("editor.savedChanges"));
         }
       }
     };
@@ -1499,7 +1501,7 @@ export const Editor: React.FC = () => {
             drawingId: id,
             elementCount: safeElements.length,
           });
-          toast.warning("Blank scene detected on load. Skipping save to protect existing data.");
+          toast.warning(t("editor.blankSceneProtected"));
           shouldNavigate = true;
         } else {
           await Promise.all([
@@ -1512,7 +1514,7 @@ export const Editor: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to save on back navigation', err);
-      toast.error("Failed to save changes. Please retry before leaving.");
+      toast.error(t("editor.failedSave"));
     } finally {
       setIsSavingOnLeave(false);
     }
@@ -1538,7 +1540,7 @@ export const Editor: React.FC = () => {
             {isSavingOnLeave ? (
               <>
                 <Loader2 size={20} className="animate-spin" />
-                <span className="text-sm font-medium">Saving changes...</span>
+                <span className="text-sm font-medium">{t("editor.savingChanges")}</span>
               </>
             ) : (
               <ArrowLeft size={20} />
@@ -1570,14 +1572,14 @@ export const Editor: React.FC = () => {
         <div className="flex items-center gap-3">
           {!canEdit ? (
             <span className="text-xs font-semibold px-2 py-1 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200 border border-amber-200 dark:border-amber-800">
-              Read-only
+              {t("common.readOnly")}
             </span>
           ) : null}
           {accessLevel === "owner" && id ? (
             <button
               onClick={() => setIsShareOpen(true)}
               className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-600 dark:text-gray-300 transition-colors"
-              title="Share"
+              title={t("common.share")}
             >
               <Share2 size={20} />
             </button>
@@ -1595,7 +1597,7 @@ export const Editor: React.FC = () => {
               }
             }}
             className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-600 dark:text-gray-300 transition-colors"
-            title={autoHideEnabled ? "Disable auto-hide" : "Enable auto-hide"}
+            title={autoHideEnabled ? t("editor.disableAutoHide") : t("editor.enableAutoHide")}
           >
             {autoHideEnabled ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
           </button>
@@ -1609,11 +1611,11 @@ export const Editor: React.FC = () => {
                 const appState = excalidrawAPI.current.getAppState();
                 const files = excalidrawAPI.current.getFiles() || {};
                 exportFromEditor(drawingName, elements, appState, files);
-                toast.success('Drawing exported');
+                toast.success(t("editor.exported"));
               }
             }}
             className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg text-gray-600 dark:text-gray-300 transition-colors"
-            title="Export drawing"
+            title={t("editor.exportDrawing")}
           >
             <Download size={20} />
           </button>
@@ -1629,7 +1631,7 @@ export const Editor: React.FC = () => {
                 {me.initials}
               </div>
               <div className="absolute top-full mt-2 right-0 bg-gray-900 text-white text-xs py-1 px-2 rounded whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                {me.name} (You)
+                {me.name} ({t("editor.you")})
               </div>
             </div>
 
@@ -1668,7 +1670,7 @@ export const Editor: React.FC = () => {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-white dark:bg-neutral-950 px-6">
             <div className="text-center">
               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                Unable to open drawing
+                {t("editor.unableToOpen")}
               </h2>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                 {loadError}
@@ -1678,7 +1680,7 @@ export const Editor: React.FC = () => {
               onClick={() => navigate('/')}
               className="px-4 py-2 rounded-lg border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 font-semibold hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
             >
-              Back to dashboard
+              {t("common.backToDashboard")}
             </button>
           </div>
         ) : initialData ? (
@@ -1692,11 +1694,12 @@ export const Editor: React.FC = () => {
             excalidrawAPI={setExcalidrawAPI}
             UIOptions={UIOptions}
             viewModeEnabled={!canEdit}
+            langCode={excalidrawLangCode}
           />
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
             <span className="text-sm font-medium">
-              {isSceneLoading ? 'Loading drawing...' : 'Preparing canvas...'}
+              {isSceneLoading ? t("editor.loadingDrawing") : t("editor.preparingCanvas")}
             </span>
           </div>
         )}

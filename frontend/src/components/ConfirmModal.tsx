@@ -1,6 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { AlertTriangle, CheckCircle, X } from 'lucide-react';
+import { useI18n } from '../context/I18nContext';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -20,13 +21,14 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   title,
   message,
   confirmText = "Delete",
-  cancelText = "Cancel",
+  cancelText,
   onConfirm,
   onCancel,
   isDangerous = true,
   showCancel = true,
   variant = 'warning'
 }) => {
+  const { t } = useI18n();
   if (!isOpen) return null;
 
   const isSuccess = variant === 'success';
@@ -68,7 +70,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
                 onClick={onCancel}
                 className="flex-1 px-4 py-2.5 bg-emerald-50 dark:bg-neutral-800 text-emerald-700 dark:text-emerald-200 font-bold rounded-xl border-2 border-emerald-200 dark:border-neutral-700 hover:bg-emerald-100 dark:hover:bg-neutral-700 hover:border-emerald-300 dark:hover:border-neutral-600 hover:-translate-y-0.5 transition-all duration-200"
               >
-                {cancelText}
+                {cancelText || t("common.cancel")}
               </button>
             )}
 

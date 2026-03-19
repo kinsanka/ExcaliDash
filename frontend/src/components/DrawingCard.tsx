@@ -7,6 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
 import clsx from 'clsx';
 import { exportDrawingToFile } from '../utils/exportUtils';
 import { previewHasEmbeddedImages } from '../utils/previewSvg';
+import { useI18n } from '../context/I18nContext';
 
 import * as api from '../api';
 
@@ -78,6 +79,7 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
   onMouseDown,
   onPreviewGenerated,
 }) => {
+  const { t, dateLocale } = useI18n();
   const [isRenaming, setIsRenaming] = useState(false);
   const [showMoveSubmenu, setShowMoveSubmenu] = useState(false);
   const [showCollectionDropdown, setShowCollectionDropdown] = useState(false);
@@ -190,12 +192,12 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
       exportDrawingToFile(drawingPayload);
     } catch (error) {
       console.error("Failed to export drawing", error);
-      setExportError("Failed to export drawing. Please try again.");
+      setExportError(t("drawing.failedExport"));
       setTimeout(() => setExportError(null), 3000);
     } finally {
       setIsExporting(false);
     }
-  }, [drawing, ensureFullData]);
+  }, [drawing, ensureFullData, t]);
 
 
   useEffect(() => {
@@ -250,7 +252,7 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
             onClick={(e) => { e.stopPropagation(); onToggleSelection(e); }}
             data-testid={`select-drawing-${drawing.id}`}
             aria-pressed={isSelected}
-            aria-label={`${isSelected ? "Deselect" : "Select"} ${drawing.name}`}
+            aria-label={`${isSelected ? t("common.deselect") : t("common.select")} ${drawing.name}`}
             className={clsx(
               "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 shadow-sm",
               isSelected ? "bg-neutral-600 dark:bg-neutral-500 border-neutral-600 dark:border-neutral-500 text-white" : "bg-white dark:bg-neutral-800 border-slate-300 dark:border-neutral-600 hover:border-neutral-500 dark:hover:border-neutral-400"
@@ -324,7 +326,7 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
           <div className="flex items-center justify-between mt-2.5 sm:mt-3 relative">
             <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 dark:text-neutral-500 flex items-center gap-1 sm:gap-1.5">
               <Clock size={10} className="sm:w-[11px] sm:h-[11px]" />
-              {formatDistanceToNow(drawing.updatedAt)} ago
+              {t("drawing.updatedAgo", { time: formatDistanceToNow(drawing.updatedAt, { locale: dateLocale }) })}
             </p>
 
             <div className="relative" onClick={e => e.stopPropagation()}>
@@ -345,10 +347,10 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                 )}
               >
                 {isShared
-                  ? "Shared"
+                  ? t("common.shared")
                   : drawing.collectionId
-                    ? (collections.find(c => c.id === drawing.collectionId)?.name || 'Collection')
-                    : 'Unorganized'}
+                    ? (collections.find(c => c.id === drawing.collectionId)?.name || t("common.collection"))
+                    : t("common.unorganized")}
               </button>
 
               {!isShared && showCollectionDropdown && (
@@ -363,7 +365,7 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                         drawing.collectionId === null ? "text-neutral-900 dark:text-white font-bold bg-neutral-100 dark:bg-neutral-800" : "text-slate-600 dark:text-neutral-400"
                       )}
                     >
-                      Unorganized
+                      {t("common.unorganized")}
                       {drawing.collectionId === null && <Check size={12} />}
                     </button>
                     {collections.map(c => (
@@ -411,7 +413,7 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                   }}
                   className="w-full px-3 py-2 text-sm text-left text-slate-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white flex items-center gap-2"
                 >
-                  <PenTool size={14} /> Rename
+                  <PenTool size={14} /> {t("common.rename")}
                 </button>
               ) : null}
 
@@ -424,7 +426,7 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                   <button
                     className="w-full px-3 py-2 text-sm text-left text-slate-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white flex items-center justify-between"
                   >
-                    <span className="flex items-center gap-2"><FolderInput size={14} /> Move to...</span>
+                    <span className="flex items-center gap-2"><FolderInput size={14} /> {t("common.moveTo")}</span>
                     <ArrowRight size={12} />
                   </button>
 
@@ -437,7 +439,7 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                           drawing.collectionId === null ? "text-neutral-900 dark:text-white font-medium" : "text-slate-600 dark:text-neutral-400"
                         )}
                       >
-                        Unorganized
+                        {t("common.unorganized")}
                         {drawing.collectionId === null && <Check size={10} />}
                       </button>
                       {collections.map(c => (
@@ -468,7 +470,7 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                     }}
                     className="w-full px-3 py-2 text-sm text-left text-slate-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white flex items-center gap-2"
                   >
-                    <Copy size={14} /> Duplicate
+                    <Copy size={14} /> {t("common.duplicate")}
                   </button>
                 </>
               ) : null}
@@ -483,7 +485,7 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                 className="w-full px-3 py-2 text-sm text-left text-slate-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isExporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                {isExporting ? 'Exporting...' : 'Export'}
+                {isExporting ? t("common.exporting") : t("common.export")}
               </button>
               {exportError && (
                 <div className="px-3 py-2 text-xs text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20">
@@ -501,7 +503,7 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                     }}
                     className="w-full px-3 py-2 text-sm text-left text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 flex items-center gap-2"
                   >
-                    <Trash2 size={14} /> Delete
+                    <Trash2 size={14} /> {t("common.delete")}
                   </button>
                 </>
               ) : null}

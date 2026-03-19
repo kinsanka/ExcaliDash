@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import * as api from "../api";
 import { useAuth } from "../context/AuthContext";
+import { useI18n } from "../context/I18nContext";
 
 type Props = {
   drawingId: string;
@@ -31,16 +32,6 @@ const toIsoFromDatetimeLocal = (value: string): string | undefined => {
   if (!Number.isFinite(date.getTime())) return undefined;
   return date.toISOString();
 };
-
-const EXPIRY_OPTIONS = [
-  { label: "Disable in 1 hour", value: "1h" },
-  { label: "Disable in 1 day", value: "1d" },
-  { label: "Disable in 2 days", value: "2d" },
-  { label: "Disable in 7 days", value: "7d" },
-  { label: "Disable in 30 days", value: "30d" },
-  { label: "Never auto-disable", value: "never" },
-  { label: "Disable at...", value: "custom" },
-];
 
 const calculateExpiresAt = (option: string, customDate?: string): string | undefined => {
   if (option === "never") return undefined;
@@ -141,7 +132,44 @@ const CustomSelect: React.FC<{
 };
 
 export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, onClose }) => {
+  const { t } = useI18n();
   const { user } = useAuth();
+  const text = {
+    failedLoad: t("share.failedLoad"),
+    addPeople: t("share.addPeople"),
+    failedShareUser: t("share.failedShareUser"),
+    failedRevokeAccess: t("share.failedRevokeAccess"),
+    failedUpdateLink: t("share.failedUpdateLink"),
+    failedRevokeLink: t("share.failedRevokeLink"),
+    shareTitle: t("share.shareTitle", { drawingName }),
+    peopleWithAccess: t("share.peopleWithAccess"),
+    you: t("share.you"),
+    owner: t("share.owner"),
+    viewer: t("share.viewer"),
+    editor: t("share.editor"),
+    removeAccess: t("share.removeAccess"),
+    generalAccess: t("share.generalAccess"),
+    restricted: t("share.restricted"),
+    anyoneWithLink: t("share.anyoneWithLink"),
+    anyoneInternet: t("share.anyoneInternet"),
+    onlyPeopleAccess: t("share.onlyPeopleAccess"),
+    whenDisabledRestricted: t("share.whenDisabledRestricted"),
+    securityWarning: t("share.securityWarning"),
+    editLinkWarning: t("share.editLinkWarning"),
+    copied: t("share.copied"),
+    copyLink: t("share.copyLink"),
+    done: t("share.done"),
+    externalNoAutoDisable: t("share.externalNoAutoDisable"),
+    externalWillAutoDisable: t("share.externalWillAutoDisable"),
+    externalAutoDisableOn: (time: string) => t("share.externalAutoDisableOn", { time }),
+    expiry1h: t("share.expiry1h"),
+    expiry1d: t("share.expiry1d"),
+    expiry2d: t("share.expiry2d"),
+    expiry7d: t("share.expiry7d"),
+    expiry30d: t("share.expiry30d"),
+    expiryNever: t("share.expiryNever"),
+    expiryCustom: t("share.expiryCustom"),
+  };
   const currentUserId = user?.id || null;
 
   const [isLoading, setIsLoading] = useState(false);
@@ -177,11 +205,21 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
   }, [sharing]);
 
   const formatAutoDisableText = (expiresAt: string | null): string => {
-    if (!expiresAt) return "External access does not auto-disable.";
+    if (!expiresAt) return text.externalNoAutoDisable;
     const ts = Date.parse(String(expiresAt));
-    if (!Number.isFinite(ts)) return "External access will auto-disable.";
-    return `External access auto-disables on ${new Date(ts).toLocaleString()}.`;
+    if (!Number.isFinite(ts)) return text.externalWillAutoDisable;
+    return text.externalAutoDisableOn(new Date(ts).toLocaleString());
   };
+
+  const EXPIRY_OPTIONS = [
+    { label: text.expiry1h, value: "1h" },
+    { label: text.expiry1d, value: "1d" },
+    { label: text.expiry2d, value: "2d" },
+    { label: text.expiry7d, value: "7d" },
+    { label: text.expiry30d, value: "30d" },
+    { label: text.expiryNever, value: "never" },
+    { label: text.expiryCustom, value: "custom" },
+  ];
 
   // Keep the permission dropdown aligned with the actual active link policy from the server.
   useEffect(() => {
@@ -197,7 +235,7 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
       const data = await api.getDrawingSharing(drawingId);
       setSharing(data);
     } catch (err: unknown) {
-      let message = "Failed to load sharing settings";
+      let message = text.failedLoad;
       if (api.isAxiosError(err)) {
         const serverMessage = typeof err.response?.data?.message === "string" ? err.response.data.message : null;
         if (serverMessage) message = serverMessage;
@@ -276,7 +314,7 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
       setUserQuery("");
       setUserResults([]);
     } catch (err: unknown) {
-      let message = "Failed to share with user";
+      let message = text.failedShareUser;
       if (api.isAxiosError(err)) {
         const serverMessage = typeof err.response?.data?.message === "string" ? err.response.data.message : null;
         if (serverMessage) message = serverMessage;
@@ -294,7 +332,7 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
       await api.revokeDrawingPermission(drawingId, permissionId);
       await refresh();
     } catch {
-      setError("Failed to revoke access");
+      setError(text.failedRevokeAccess);
     } finally {
       setIsLoading(false);
     }
@@ -320,7 +358,7 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
       await refresh();
       void handleCopy(shareableEditorUrl);
     } catch (err: unknown) {
-      let message = "Failed to update link";
+      let message = text.failedUpdateLink;
       if (api.isAxiosError(err)) {
         const serverMessage = typeof err.response?.data?.message === "string" ? err.response.data.message : null;
         if (serverMessage) message = serverMessage;
@@ -339,7 +377,7 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
       await api.revokeLinkShare(drawingId, activeLink.id);
       await refresh();
     } catch {
-      setError("Failed to revoke link");
+      setError(text.failedRevokeLink);
     } finally {
       setIsLoading(false);
     }
@@ -356,7 +394,7 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
       <div className="relative w-full max-w-[540px] bg-white dark:bg-neutral-900 rounded-[24px] border-2 border-black dark:border-neutral-700 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] dark:shadow-[12px_12px_0px_0px_rgba(255,255,255,0.05)] flex flex-col animate-in fade-in zoom-in-95 duration-200">
         <div className="px-8 py-6 flex items-center justify-between border-b-2 border-black dark:border-neutral-700">
           <h2 className="text-xl font-black text-slate-800 dark:text-neutral-100 truncate pr-4" title={drawingName}>
-            Share "{drawingName}"
+            {text.shareTitle}
           </h2>
           <button
             onClick={onClose}
@@ -382,7 +420,7 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
               <input
                 value={userQuery}
                 onChange={(e) => setUserQuery(e.target.value)}
-                placeholder="Add people"
+                placeholder={text.addPeople}
                 className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-black dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 text-slate-900 dark:text-neutral-100 focus:outline-none focus:ring-0 focus:border-indigo-600 dark:focus:border-indigo-500 transition-all font-bold placeholder:text-slate-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.05)]"
               />
             </div>
@@ -410,7 +448,7 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
           </section>
 
           <section className="space-y-4">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500 px-1">People with access</h3>
+            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500 px-1">{text.peopleWithAccess}</h3>
             
             <div className="space-y-1">
               <div className="flex items-center gap-4 px-1 py-3 min-h-[64px]">
@@ -419,11 +457,11 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col justify-center">
                   <div className="text-base font-black text-slate-900 dark:text-neutral-100 leading-tight">
-                    {user?.name} <span className="text-slate-400 dark:text-neutral-500 font-bold ml-1">(you)</span>
+                    {user?.name} <span className="text-slate-400 dark:text-neutral-500 font-bold ml-1">({text.you})</span>
                   </div>
                   <div className="text-sm font-bold text-slate-500 dark:text-neutral-400 mt-0.5">{user?.email}</div>
                 </div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-neutral-500 pr-4 shrink-0">Owner</div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-neutral-500 pr-4 shrink-0">{text.owner}</div>
               </div>
 
               {(sharing?.permissions || []).map((p) => (
@@ -447,9 +485,9 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
                         }
                       }}
                       options={[
-                        { label: "Viewer", value: "view" },
-                        { label: "Editor", value: "edit" },
-                        { label: "Remove access", value: "remove", danger: true },
+                        { label: text.viewer, value: "view" },
+                        { label: text.editor, value: "edit" },
+                        { label: text.removeAccess, value: "remove", danger: true },
                       ]}
                       align="right"
                     />
@@ -460,7 +498,7 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
           </section>
 
           <section className="pt-8 border-t-2 border-black dark:border-neutral-700">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500 px-1 mb-6">General access</h3>
+            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-neutral-500 px-1 mb-6">{text.generalAccess}</h3>
             
             <div className="flex items-start gap-5 px-1">
               <div className={clsx(
@@ -481,8 +519,8 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
                       else void handleRevokeLink();
                     }}
                     options={[
-                      { label: "Restricted", value: "restricted" },
-                      { label: "Anyone with the link", value: "anyone" },
+                      { label: text.restricted, value: "restricted" },
+                      { label: text.anyoneWithLink, value: "anyone" },
                     ]}
                     className="-ml-3"
                     showCheck={false}
@@ -491,23 +529,23 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
                 
                 <p className="text-sm font-bold text-slate-500 dark:text-neutral-400 leading-snug px-1">
                   {activeLink 
-                    ? "Anyone on the internet with the link can access." 
-                    : "Only people with access can open with the link."}
+                    ? text.anyoneInternet
+                    : text.onlyPeopleAccess}
                 </p>
 
                 {activeLink && (
                   <div className="pt-5 space-y-6 animate-in fade-in slide-in-from-top-1 duration-200">
                     <p className="text-xs font-black text-slate-500 dark:text-neutral-400 px-1">
                       {formatAutoDisableText(activeLink.expiresAt)}
-                      {" "}When it disables, General access switches back to Restricted.
+                      {" "}{text.whenDisabledRestricted}
                     </p>
                     <div className="flex flex-wrap items-center gap-3">
                       <CustomSelect
                         value={linkPermission}
                         onChange={(val) => handleUpdateLink(val as any)}
                         options={[
-                          { label: "Viewer", value: "view" },
-                          { label: "Editor", value: "edit" },
+                          { label: text.viewer, value: "view" },
+                          { label: text.editor, value: "edit" },
                         ]}
                         icon={<Shield size={16} strokeWidth={2.5} className="text-slate-400" />}
                         variant="bordered"
@@ -543,8 +581,8 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
                         <div className="flex items-start gap-3">
                            <AlertTriangle size={20} strokeWidth={3} className="text-amber-600 shrink-0 mt-0.5" />
                            <div className="text-xs text-amber-900 dark:text-amber-200 font-black leading-relaxed">
-                             <span className="uppercase tracking-[0.1em] text-[10px]">Security Warning</span><br/>
-                             Edit access via link is sensitive. Anyone with the URL can edit until it expires or is disabled.
+                             <span className="uppercase tracking-[0.1em] text-[10px]">{text.securityWarning}</span><br/>
+                             {text.editLinkWarning}
                            </div>
                         </div>
                       </div>
@@ -569,14 +607,14 @@ export const ShareModal: React.FC<Props> = ({ drawingId, drawingName, isOpen, on
             )}
           >
             {isCopied ? <Check size={20} strokeWidth={3} /> : <LinkIcon size={20} strokeWidth={3} />}
-            {isCopied ? "COPIED!" : "COPY LINK"}
+            {isCopied ? text.copied : text.copyLink}
           </button>
           
           <button
             onClick={onClose}
             className="px-12 py-3.5 rounded-xl bg-indigo-600 dark:bg-indigo-500 text-white border-2 border-black font-black text-sm uppercase tracking-[0.2em] hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-0 active:shadow-none transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
           >
-            DONE
+            {text.done}
           </button>
         </div>
 

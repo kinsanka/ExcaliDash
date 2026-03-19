@@ -11,10 +11,12 @@ import { ConfirmModal } from '../components/ConfirmModal';
 import { useUpload } from '../context/UploadContext';
 import { DragOverlayPortal, getSelectionBounds, type Point, type SelectionBounds } from './dashboard/shared';
 import { useDashboardData } from './dashboard/useDashboardData';
+import { useI18n } from '../context/I18nContext';
 
 const PAGE_SIZE = 24;
 
 export const Dashboard: React.FC = () => {
+  const { t } = useI18n();
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -250,9 +252,9 @@ export const Dashboard: React.FC = () => {
   };
 
   const sortOptions: { field: SortField; label: string; icon: React.ReactNode }[] = [
-    { field: 'name', label: 'Name', icon: <FileText size={16} /> },
-    { field: 'createdAt', label: 'Date Created', icon: <Calendar size={16} /> },
-    { field: 'updatedAt', label: 'Date Modified', icon: <Clock size={16} /> },
+    { field: 'name', label: t("dashboard.name"), icon: <FileText size={16} /> },
+    { field: 'createdAt', label: t("dashboard.dateCreated"), icon: <Calendar size={16} /> },
+    { field: 'updatedAt', label: t("dashboard.dateModified"), icon: <Clock size={16} /> },
   ];
 
   const currentSortOption = sortOptions.find(opt => opt.field === sortConfig.field) || sortOptions[0];
@@ -263,7 +265,7 @@ export const Dashboard: React.FC = () => {
     if (isTrashView || isSharedView) return;
     try {
       const targetCollectionId = selectedCollectionId === undefined ? null : selectedCollectionId;
-      const { id } = await api.createDrawing('Untitled Drawing', targetCollectionId);
+      const { id } = await api.createDrawing(t("dashboard.newDrawing"), targetCollectionId);
       navigate(`/editor/${id}`);
     } catch (err) {
       console.error(err);
@@ -515,13 +517,13 @@ export const Dashboard: React.FC = () => {
   };
 
   const viewTitle = React.useMemo(() => {
-    if (selectedCollectionId === undefined) return "All Drawings";
-    if (selectedCollectionId === null) return "Unorganized";
-    if (selectedCollectionId === 'shared') return "Shared with me";
-    if (selectedCollectionId === 'trash') return "Trash";
+    if (selectedCollectionId === undefined) return t("common.allDrawings");
+    if (selectedCollectionId === null) return t("common.unorganized");
+    if (selectedCollectionId === 'shared') return t("common.sharedWithMe");
+    if (selectedCollectionId === 'trash') return t("common.trash");
     const collection = collections.find(c => c.id === selectedCollectionId);
-    return collection ? collection.name : "Collection";
-  }, [selectedCollectionId, collections]);
+    return collection ? collection.name : t("common.collection");
+  }, [selectedCollectionId, collections, t]);
 
   const hasSelection = selectedIds.size > 0;
   const allSelected = sortedDrawings.length > 0 && selectedIds.size === sortedDrawings.length;
@@ -548,7 +550,7 @@ export const Dashboard: React.FC = () => {
       if (libFiles.length > 0) {
         setShowImportError({
           isOpen: true,
-          message: 'Library (.excalidrawlib) imports are not supported in this build. Please import drawings (.excalidraw/.json) instead.'
+          message: t("dashboard.libraryImportUnsupported")
         });
       }
 
@@ -694,7 +696,7 @@ export const Dashboard: React.FC = () => {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search drawings..."
+              placeholder={t("common.search")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-12 py-2.5 bg-white dark:bg-neutral-900 border-2 border-black dark:border-neutral-700 rounded-xl focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:focus:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] outline-none transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] placeholder:text-slate-400 dark:placeholder:text-neutral-500 text-sm text-slate-900 dark:text-white"
@@ -759,7 +761,7 @@ export const Dashboard: React.FC = () => {
                 "flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-all border-2 border-black dark:border-neutral-700 h-[42px] min-w-[42px]",
                 "bg-white dark:bg-neutral-900 text-indigo-600 dark:text-indigo-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
               )}
-              title={sortConfig.direction === 'asc' ? 'Sort Ascending' : 'Sort Descending'}
+              title={sortConfig.direction === 'asc' ? t("dashboard.sortAscending") : t("dashboard.sortDescending")}
             >
               {sortConfig.direction === 'asc' ? (
                 <ArrowUp size={18} />
@@ -781,7 +783,7 @@ export const Dashboard: React.FC = () => {
                   ? "bg-white dark:bg-neutral-800 border-black dark:border-neutral-700 text-indigo-600 dark:text-indigo-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
                   : "bg-slate-100 dark:bg-neutral-900 border-slate-300 dark:border-neutral-800 text-slate-300 dark:text-neutral-700 cursor-not-allowed"
               )}
-              title={allSelected ? "Deselect All" : "Select All"}
+              title={allSelected ? t("dashboard.deselectAll") : t("dashboard.selectAll")}
             >
               {allSelected ? <CheckSquare size={20} /> : <Square size={20} />}
             </button>
@@ -795,7 +797,7 @@ export const Dashboard: React.FC = () => {
                 ? "bg-white dark:bg-neutral-800 border-black dark:border-neutral-700 text-rose-600 dark:text-rose-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-1 hover:bg-rose-50 dark:hover:bg-rose-900/30"
                 : "bg-slate-100 dark:bg-neutral-900 border-slate-300 dark:border-neutral-800 text-slate-300 dark:text-neutral-700 cursor-not-allowed"
             )}
-            title={isTrashView ? "Delete Permanently" : "Move to Trash"}
+            title={isTrashView ? t("dashboard.deletePermanently") : t("dashboard.moveToTrash")}
           >
             <Trash2 size={20} />
           </button>
@@ -809,7 +811,7 @@ export const Dashboard: React.FC = () => {
                 ? "bg-white dark:bg-neutral-800 border-black dark:border-neutral-700 text-indigo-600 dark:text-indigo-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
                 : "bg-slate-100 dark:bg-neutral-900 border-slate-300 dark:border-neutral-800 text-slate-300 dark:text-neutral-700 cursor-not-allowed"
             )}
-            title="Duplicate Selected"
+            title={t("dashboard.duplicateSelected")}
           >
             <Copy size={20} />
           </button>
@@ -824,7 +826,7 @@ export const Dashboard: React.FC = () => {
                     ? "bg-white dark:bg-neutral-800 border-black dark:border-neutral-700 text-emerald-600 dark:text-emerald-400 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-1 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
                     : "bg-slate-100 dark:bg-neutral-900 border-slate-300 dark:border-neutral-800 text-slate-300 dark:text-neutral-700 cursor-not-allowed"
                 )}
-                title="Move Selected"
+                title={t("dashboard.moveSelected")}
               >
                 <div className="relative">
                   <Folder size={20} />
@@ -837,13 +839,13 @@ export const Dashboard: React.FC = () => {
                   <div className="fixed inset-0 z-10" onClick={() => setShowBulkMoveMenu(false)} />
                   <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-neutral-800 rounded-xl border-2 border-black dark:border-neutral-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] z-50 py-1 max-h-64 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-100">
                     <div className="px-3 py-2 text-[10px] font-bold uppercase text-slate-400 dark:text-neutral-500 tracking-wider border-b border-slate-100 dark:border-neutral-700 mb-1">
-                      Move {selectedIds.size} items to...
+                      {t("dashboard.moveItemsTo", { count: selectedIds.size })}
                     </div>
                     <button
                       onClick={() => handleBulkMove(null)}
                       className="w-full px-3 py-2 text-sm text-left flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                     >
-                      <Inbox size={14} /> Unorganized
+                      <Inbox size={14} /> {t("common.unorganized")}
                     </button>
                     {collections.filter(c => c.id !== 'trash').map(c => (
                       <button
@@ -883,7 +885,7 @@ export const Dashboard: React.FC = () => {
             )}
           >
             <Upload size={18} strokeWidth={2.5} />
-            Import
+            {t("common.import")}
           </button>
 
           <button
@@ -897,7 +899,7 @@ export const Dashboard: React.FC = () => {
             )}
           >
             <Plus size={18} strokeWidth={2.5} />
-            New Drawing
+            {t("dashboard.newDrawing")}
           </button>
         </div>
       </div>
@@ -928,12 +930,9 @@ export const Dashboard: React.FC = () => {
               <Inbox size={56} className="text-indigo-600 hidden sm:block" />
               <Inbox size={44} className="text-indigo-600 sm:hidden" />
             </div>
-            <h3 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2 text-center px-4">Drop files to import</h3>
+            <h3 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2 text-center px-4">{t("dashboard.dropFiles")}</h3>
             <p className="text-slate-500 text-base sm:text-lg max-w-sm sm:max-w-md text-center px-4">
-              Drop .excalidraw or .json files here to add them to
-              <span className="font-bold text-indigo-600 mx-1">
-                {viewTitle}
-              </span>
+              {t("dashboard.dropFilesInto", { target: viewTitle })}
             </p>
           </div>
         )}
@@ -953,11 +952,11 @@ export const Dashboard: React.FC = () => {
                   {isTrashView ? <Trash2 size={32} className="text-slate-300 dark:text-slate-600" /> : <Inbox size={32} className="text-slate-300 dark:text-slate-600" />}
                 </div>
                 <p className="text-lg font-semibold text-slate-600 dark:text-slate-400">
-                  {isTrashView ? "Your trash is empty" : "No drawings found"}
+                  {isTrashView ? t("dashboard.trashEmpty") : t("dashboard.noDrawings")}
                 </p>
                 {!isTrashView && (
                   <p className="text-sm mt-2 text-slate-400 dark:text-neutral-500 max-w-xs text-center">
-                    {search ? `No results for "${search}"` : "Create a new drawing to get started!"}
+                    {search ? t("dashboard.noResults", { search }) : t("dashboard.createFirstDrawing")}
                   </p>
                 )}
                 {search && (
@@ -965,7 +964,7 @@ export const Dashboard: React.FC = () => {
                     onClick={() => setSearch('')}
                     className="mt-4 text-indigo-600 dark:text-indigo-400 font-medium hover:underline text-sm"
                   >
-                    Clear search
+                    {t("common.clearSearch")}
                   </button>
                 )}
               </div>
@@ -1002,7 +1001,7 @@ export const Dashboard: React.FC = () => {
           {isFetchingMore && (
             <div className="flex items-center gap-2 text-indigo-600 font-bold animate-in fade-in slide-in-from-bottom-2">
               <Loader2 size={24} className="animate-spin" />
-              <span>Loading more...</span>
+              <span>{t("dashboard.loadingMore")}</span>
             </div>
           )}
         </div>
@@ -1010,27 +1009,27 @@ export const Dashboard: React.FC = () => {
 
       <ConfirmModal
         isOpen={!!drawingToDelete}
-        title="Delete Drawing"
-        message="Are you sure you want to permanently delete this drawing? This action cannot be undone."
-        confirmText="Delete Permanently"
+        title={t("dashboard.deleteDrawing")}
+        message={t("dashboard.deleteDrawingConfirm")}
+        confirmText={t("dashboard.deletePermanently")}
         onConfirm={() => drawingToDelete && executePermanentDelete(drawingToDelete)}
         onCancel={() => setDrawingToDelete(null)}
       />
 
       <ConfirmModal
         isOpen={showBulkDeleteConfirm}
-        title="Delete Selected Drawings"
-        message={`Are you sure you want to permanently delete ${selectedIds.size} drawings? This action cannot be undone.`}
-        confirmText={`Delete ${selectedIds.size} Drawings`}
+        title={t("dashboard.deleteSelectedDrawings")}
+        message={t("dashboard.deleteSelectedConfirm", { count: selectedIds.size })}
+        confirmText={t("dashboard.deleteSelectedAction", { count: selectedIds.size })}
         onConfirm={executeBulkPermanentDelete}
         onCancel={() => setShowBulkDeleteConfirm(false)}
       />
 
       <ConfirmModal
         isOpen={showImportError.isOpen}
-        title="Import Failed"
+        title={t("dashboard.importFailed")}
         message={showImportError.message}
-        confirmText="OK"
+        confirmText={t("common.ok")}
         showCancel={false}
         isDangerous={false}
         onConfirm={() => setShowImportError({ isOpen: false, message: '' })}

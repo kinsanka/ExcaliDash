@@ -8,12 +8,46 @@ import { User, Lock, Save, X } from 'lucide-react';
 import { USER_KEY } from '../utils/impersonation';
 import { getPasswordPolicy, validatePassword } from '../utils/passwordPolicy';
 import { PasswordRequirements } from '../components/PasswordRequirements';
+import { useI18n } from '../context/I18nContext';
 
 export const Profile: React.FC = () => {
+    const { t } = useI18n();
     const { user: authUser, logout, authEnabled } = useAuth();
     const navigate = useNavigate();
     const mustResetPassword = Boolean(authUser?.mustResetPassword);
-    const passwordPolicy = getPasswordPolicy();
+    const passwordPolicy = getPasswordPolicy({ translate: t });
+    const text = {
+        title: t('profile.title'),
+        personalInfo: t('profile.personalInfo'),
+        passwordResetRequired: t('profile.passwordResetRequired'),
+        passwordResetHint: t('profile.passwordResetHint'),
+        emailAddress: t('profile.emailAddress'),
+        change: t('profile.change'),
+        currentPassword: t('profile.currentPassword'),
+        enterCurrentPassword: t('profile.enterCurrentPassword'),
+        saving: t('profile.saving'),
+        saveEmail: t('profile.saveEmail'),
+        displayName: t('profile.displayName'),
+        save: t('common.save'),
+        changePassword: t('profile.changePassword'),
+        newPassword: t('profile.newPassword'),
+        enterNewPassword: t('profile.enterNewPassword'),
+        confirmNewPassword: t('profile.confirmNewPassword'),
+        changing: t('profile.changing'),
+        mustResetBeforeProfile: t('profile.mustResetBeforeProfile'),
+        nameEmpty: t('profile.nameEmpty'),
+        nameUpdated: t('profile.nameUpdated'),
+        updateNameFailed: t('profile.updateNameFailed'),
+        allPasswordFieldsRequired: t('profile.allPasswordFieldsRequired'),
+        passwordsMismatch: t('profile.passwordsMismatch'),
+        passwordChanged: t('profile.passwordChanged'),
+        changePasswordFailed: t('profile.changePasswordFailed'),
+        mustResetBeforeEmail: t('profile.mustResetBeforeEmail'),
+        emailEmpty: t('profile.emailEmpty'),
+        emailPasswordRequired: t('profile.emailPasswordRequired'),
+        emailUpdated: t('profile.emailUpdated'),
+        updateEmailFailed: t('profile.updateEmailFailed'),
+    };
     const [collections, setCollections] = useState<Collection[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -81,11 +115,11 @@ export const Profile: React.FC = () => {
 
     const handleUpdateName = async () => {
         if (mustResetPassword) {
-            setError('You must reset your password before updating your profile');
+            setError(text.mustResetBeforeProfile);
             return;
         }
         if (!name.trim()) {
-            setError('Name cannot be empty');
+            setError(text.nameEmpty);
             return;
         }
 
@@ -95,13 +129,13 @@ export const Profile: React.FC = () => {
 
         try {
             const response = await api.api.put<{ user: { id: string; email: string; name: string; createdAt: string; updatedAt: string } }>('/auth/profile', { name: name.trim() });
-            setSuccess('Name updated successfully');
+            setSuccess(text.nameUpdated);
             if (response.data?.user) {
                 localStorage.setItem('excalidash-user', JSON.stringify(response.data.user));
                 setTimeout(() => window.location.reload(), 500);
             }
         } catch (err: unknown) {
-            let message = 'Failed to update name';
+            let message = text.updateNameFailed;
             if (api.isAxiosError(err)) {
                 if (err.response?.data?.message) {
                     message = err.response.data.message;
@@ -117,7 +151,7 @@ export const Profile: React.FC = () => {
 
     const handleChangePassword = async () => {
         if (!currentPassword || !newPassword || !confirmPassword) {
-            setError('All password fields are required');
+            setError(text.allPasswordFieldsRequired);
             return;
         }
 
@@ -128,7 +162,7 @@ export const Profile: React.FC = () => {
         }
 
         if (newPassword !== confirmPassword) {
-            setError('New passwords do not match');
+            setError(text.passwordsMismatch);
             return;
         }
 
@@ -141,7 +175,7 @@ export const Profile: React.FC = () => {
                 currentPassword,
                 newPassword,
             });
-            setSuccess('Password changed successfully');
+            setSuccess(text.passwordChanged);
             setShowPasswordForm(false);
             setCurrentPassword('');
             setNewPassword('');
@@ -151,7 +185,7 @@ export const Profile: React.FC = () => {
                 navigate('/login');
             }, 2000);
         } catch (err: unknown) {
-            let message = 'Failed to change password';
+            let message = text.changePasswordFailed;
             if (api.isAxiosError(err)) {
                 if (err.response?.data?.message) {
                     message = err.response.data.message;
@@ -167,15 +201,15 @@ export const Profile: React.FC = () => {
 
     const handleUpdateEmail = async () => {
         if (mustResetPassword) {
-            setError('You must reset your password before changing your email');
+            setError(text.mustResetBeforeEmail);
             return;
         }
         if (!email.trim()) {
-            setError('Email cannot be empty');
+            setError(text.emailEmpty);
             return;
         }
         if (!emailCurrentPassword) {
-            setError('Current password is required to change email');
+            setError(text.emailPasswordRequired);
             return;
         }
 
@@ -193,13 +227,13 @@ export const Profile: React.FC = () => {
 
             localStorage.setItem(USER_KEY, JSON.stringify(response.data.user));
 
-            setSuccess('Email updated successfully');
+            setSuccess(text.emailUpdated);
             setShowEmailForm(false);
             setEmailCurrentPassword('');
 
             setTimeout(() => window.location.reload(), 500);
         } catch (err: unknown) {
-            let message = 'Failed to update email';
+            let message = text.updateEmailFailed;
             if (api.isAxiosError(err)) {
                 if (err.response?.data?.message) {
                     message = err.response.data.message;
@@ -223,7 +257,7 @@ export const Profile: React.FC = () => {
             onDeleteCollection={handleDeleteCollection}
         >
             <h1 className="text-3xl sm:text-5xl mb-6 sm:mb-8 text-slate-900 dark:text-white pl-1" style={{ fontFamily: 'Excalifont' }}>
-                Profile
+                {text.title}
             </h1>
 
             {success && (
@@ -243,23 +277,23 @@ export const Profile: React.FC = () => {
                         <div className="w-12 h-12 bg-indigo-50 dark:bg-neutral-800 rounded-xl flex items-center justify-center border-2 border-indigo-100 dark:border-neutral-700">
                             <User size={24} className="text-indigo-600 dark:text-indigo-400" />
                         </div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Personal Information</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{text.personalInfo}</h2>
                     </div>
 
                             {mustResetPassword && (
                                 <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-xl">
                                     <p className="text-amber-900 dark:text-amber-200 font-bold">
-                                        Password reset required
+                                        {text.passwordResetRequired}
                                     </p>
                                     <p className="text-sm text-amber-800 dark:text-amber-200/80 font-medium mt-1">
-                                        Change your password below before using ExcaliDash.
+                                        {text.passwordResetHint}
                                     </p>
                                 </div>
                             )}
 		                    <div className="space-y-4">
 	                        <div>
 	                            <label htmlFor="email" className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">
-	                                Email Address
+	                                {text.emailAddress}
 	                            </label>
 	                            <div className="flex gap-3">
 	                                <input
@@ -285,7 +319,7 @@ export const Profile: React.FC = () => {
                                                 disabled={mustResetPassword}
 		                                        className="px-6 py-3 bg-white dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 font-bold rounded-xl border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 transition-all duration-200"
 		                                    >
-		                                        Change
+		                                        {text.change}
 		                                    </button>
 		                                )}
 	                            </div>
@@ -294,7 +328,7 @@ export const Profile: React.FC = () => {
 	                                <div className="mt-4 space-y-3">
 	                                    <div>
 	                                        <label htmlFor="emailCurrentPassword" className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">
-	                                            Current Password
+	                                            {text.currentPassword}
 	                                        </label>
 	                                        <input
 	                                            id="emailCurrentPassword"
@@ -302,7 +336,7 @@ export const Profile: React.FC = () => {
 	                                            value={emailCurrentPassword}
 	                                            onChange={(e) => setEmailCurrentPassword(e.target.value)}
 	                                            className="w-full px-4 py-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 font-medium"
-	                                            placeholder="Enter current password"
+	                                            placeholder={text.enterCurrentPassword}
 	                                        />
 	                                    </div>
 	                                    <div className="flex gap-3">
@@ -316,7 +350,7 @@ export const Profile: React.FC = () => {
 	                                            }
 	                                            className="flex-1 px-6 py-3 bg-indigo-600 dark:bg-indigo-500 text-white font-bold rounded-xl border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
 	                                        >
-	                                            {emailLoading ? 'Saving...' : 'Save Email'}
+	                                            {emailLoading ? text.saving : text.saveEmail}
 	                                        </button>
 	                                        <button
 	                                            onClick={() => {
@@ -329,7 +363,7 @@ export const Profile: React.FC = () => {
 	                                            className="px-6 py-3 bg-white dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 font-bold rounded-xl border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
 	                                        >
 	                                            <X size={18} />
-	                                            Cancel
+	                                            {t("common.cancel")}
 	                                        </button>
 	                                    </div>
 	                                </div>
@@ -338,7 +372,7 @@ export const Profile: React.FC = () => {
 
                         <div>
                             <label htmlFor="name" className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">
-                                Display Name
+                                {text.displayName}
                             </label>
                             <div className="flex gap-3">
                                 <input
@@ -347,7 +381,7 @@ export const Profile: React.FC = () => {
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     className="flex-1 px-4 py-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 font-medium"
-                                    placeholder="Your name"
+                                    placeholder={t("auth.yourName")}
                                 />
 	                                <button
 	                                    onClick={handleUpdateName}
@@ -355,7 +389,7 @@ export const Profile: React.FC = () => {
 	                                    className="px-6 py-3 bg-indigo-600 dark:bg-indigo-500 text-white font-bold rounded-xl border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:disabled:hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] flex items-center gap-2"
 	                                >
 	                                    <Save size={18} />
-	                                    Save
+	                                    {text.save}
 	                                </button>
                             </div>
                         </div>
@@ -368,14 +402,14 @@ export const Profile: React.FC = () => {
                             <div className="w-12 h-12 bg-rose-50 dark:bg-neutral-800 rounded-xl flex items-center justify-center border-2 border-rose-100 dark:border-neutral-700">
                                 <Lock size={24} className="text-rose-600 dark:text-rose-400" />
                             </div>
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Change Password</h2>
+                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{text.changePassword}</h2>
                         </div>
                         {!showPasswordForm && !mustResetPassword && (
                             <button
                                 onClick={() => setShowPasswordForm(true)}
                                 className="px-4 py-2 bg-rose-600 dark:bg-rose-500 text-white font-bold rounded-xl border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 transition-all duration-200"
                             >
-                                Change Password
+                                {text.changePassword}
                             </button>
                         )}
                     </div>
@@ -384,7 +418,7 @@ export const Profile: React.FC = () => {
                         <div className="space-y-4">
                             <div>
                                 <label htmlFor="currentPassword" className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">
-                                    Current Password
+                                    {text.currentPassword}
                                 </label>
                                 <input
                                     id="currentPassword"
@@ -392,13 +426,13 @@ export const Profile: React.FC = () => {
                                     value={currentPassword}
                                     onChange={(e) => setCurrentPassword(e.target.value)}
                                     className="w-full px-4 py-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 dark:focus:ring-rose-400 font-medium"
-                                    placeholder="Enter current password"
+                                    placeholder={text.enterCurrentPassword}
                                 />
                             </div>
 
                             <div>
                                 <label htmlFor="newPassword" className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">
-                                    New Password
+                                    {text.newPassword}
                                 </label>
                                 <input
                                     id="newPassword"
@@ -409,7 +443,7 @@ export const Profile: React.FC = () => {
                                     maxLength={passwordPolicy.maxLength}
                                     pattern={passwordPolicy.patternHtml}
                                     className="w-full px-4 py-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 dark:focus:ring-rose-400 font-medium"
-                                    placeholder="Enter new password"
+                                    placeholder={text.enterNewPassword}
                                 />
                                 <PasswordRequirements
                                     password={newPassword}
@@ -420,7 +454,7 @@ export const Profile: React.FC = () => {
 
                             <div>
                                 <label htmlFor="confirmPassword" className="block text-sm font-bold text-slate-700 dark:text-neutral-300 mb-2">
-                                    Confirm New Password
+                                    {text.confirmNewPassword}
                                 </label>
                                 <input
                                     id="confirmPassword"
@@ -430,7 +464,7 @@ export const Profile: React.FC = () => {
                                     minLength={passwordPolicy.minLength}
                                     maxLength={passwordPolicy.maxLength}
                                     className="w-full px-4 py-3 bg-white dark:bg-neutral-800 border-2 border-black dark:border-neutral-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 dark:focus:ring-rose-400 font-medium"
-                                    placeholder="Confirm new password"
+                                    placeholder={text.confirmNewPassword}
                                 />
                             </div>
 
@@ -440,7 +474,7 @@ export const Profile: React.FC = () => {
                                     disabled={loading || !currentPassword || !newPassword || !confirmPassword}
                                     className="flex-1 px-6 py-3 bg-rose-600 dark:bg-rose-500 text-white font-bold rounded-xl border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:disabled:hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]"
                                 >
-                                    {loading ? 'Changing...' : 'Change Password'}
+                                    {loading ? text.changing : text.changePassword}
                                 </button>
                                     {!mustResetPassword && (
 	                                    <button
@@ -455,7 +489,7 @@ export const Profile: React.FC = () => {
 	                                        className="px-6 py-3 bg-white dark:bg-neutral-800 text-slate-700 dark:text-neutral-300 font-bold rounded-xl border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
 	                                    >
 	                                        <X size={18} />
-	                                        Cancel
+	                                        {t("common.cancel")}
 	                                    </button>
                                     )}
 	                            </div>
