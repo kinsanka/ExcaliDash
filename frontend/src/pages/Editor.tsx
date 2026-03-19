@@ -127,6 +127,7 @@ export const Editor: React.FC = () => {
 
   const [peers, setPeers] = useState<Peer[]>([]);
   const [isReady, setIsReady] = useState(false);
+  const editorViewportRef = useRef<HTMLDivElement | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const lastCursorEmit = useRef<number>(0);
   const elementVersionMap = useRef<Map<string, ElementVersionInfo>>(new Map());
@@ -156,6 +157,70 @@ export const Editor: React.FC = () => {
   const pendingRemoteElementOrderRef = useRef<string[] | null>(null);
   const remoteFlushScheduledRef = useRef(false);
   const remoteFlushRafIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (excalidrawLangCode !== "zh-CN") {
+      return;
+    }
+
+    const root = editorViewportRef.current;
+    if (!root) {
+      return;
+    }
+
+    const textReplacements = new Map<string, string>([
+      ["Find on canvas", "在画布中查找"],
+      ["Excalidraw links", "Excalidraw 链接"],
+      ["Follow us", "关注我们"],
+      ["Discord chat", "Discord 聊天"],
+    ]);
+
+    const replaceText = (node: Node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const value = node.textContent?.trim();
+        if (value && textReplacements.has(value)) {
+          node.textContent = node.textContent?.replace(value, textReplacements.get(value) || value) ?? null;
+        }
+        return;
+      }
+
+      if (!(node instanceof HTMLElement)) {
+        return;
+      }
+
+      const ariaLabel = node.getAttribute("aria-label");
+      if (ariaLabel && textReplacements.has(ariaLabel)) {
+        node.setAttribute("aria-label", textReplacements.get(ariaLabel) || ariaLabel);
+      }
+
+      const title = node.getAttribute("title");
+      if (title && textReplacements.has(title)) {
+        node.setAttribute("title", textReplacements.get(title) || title);
+      }
+
+      node.childNodes.forEach(replaceText);
+    };
+
+    const applyTranslations = () => replaceText(root);
+    applyTranslations();
+
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        mutation.addedNodes.forEach(replaceText);
+        if (mutation.type === "characterData" && mutation.target) {
+          replaceText(mutation.target);
+        }
+      }
+    });
+
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+
+    return () => observer.disconnect();
+  }, [excalidrawLangCode]);
 
   useEffect(() => {
     setAutoHideEnabled(getStoredAutoHideEnabled());
@@ -1659,7 +1724,8 @@ export const Editor: React.FC = () => {
         </div>
       </header>
 
-      <div 
+      <div
+        ref={editorViewportRef}
         className="flex-1 w-full relative transition-all duration-300" 
         style={{ 
           height: isHeaderVisible ? 'calc(100vh - 4rem)' : '100vh',

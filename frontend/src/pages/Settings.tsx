@@ -68,6 +68,32 @@ export const Settings: React.FC = () => {
     const [updateInfo, setUpdateInfo] = useState<api.UpdateInfo | null>(null);
     const [updateLoading, setUpdateLoading] = useState(false);
     const [updateError, setUpdateError] = useState<string | null>(null);
+    const settingsText = {
+        failedCheckUpdates: t('settings.failedCheckUpdates'),
+        failedUpdateAuth: t('settings.failedUpdateAuth'),
+        failedExportBackup: t('settings.failedExportBackup'),
+        failedVerifyBackup: t('settings.failedVerifyBackup'),
+        failedVerifyLegacyDb: t('settings.failedVerifyLegacyDb'),
+        importLegacyDbSeparately: t('settings.importLegacyDbSeparately'),
+        importCompleteWithErrors: (success: number, failed: number, errors: string) =>
+            t('settings.importCompleteWithErrors', { success, failed, errors }),
+        importedFiles: (count: number) => t('settings.importedFiles', { count }),
+        unknown: t('settings.unknown'),
+        failedImportLegacyDb: t('settings.failedImportLegacyDb'),
+        legacyDbImported: (
+            collectionsCreated: number,
+            collectionsUpdated: number,
+            drawingsCreated: number,
+            drawingsUpdated: number,
+        ) =>
+            t('settings.legacyDbImported', {
+                collectionsCreated,
+                collectionsUpdated,
+                drawingsCreated,
+                drawingsUpdated,
+            }),
+        failedImportBackup: t('settings.failedImportBackup'),
+    };
 
     useEffect(() => {
         const fetchCollections = async () => {
@@ -92,7 +118,7 @@ export const Settings: React.FC = () => {
             } catch {
             }
         } catch (err: unknown) {
-            let message = 'Failed to check for updates';
+            let message = settingsText.failedCheckUpdates;
             if (api.isAxiosError(err)) {
                 message =
                     err.response?.data?.message ||
@@ -126,7 +152,7 @@ export const Settings: React.FC = () => {
 
             window.location.reload();
         } catch (err: unknown) {
-            let message = 'Failed to update authentication setting';
+            let message = settingsText.failedUpdateAuth;
             if (api.isAxiosError(err)) {
                 message =
                     err.response?.data?.message ||
@@ -163,7 +189,7 @@ export const Settings: React.FC = () => {
             window.URL.revokeObjectURL(url);
         } catch (err: unknown) {
             console.error('Backup export failed:', err);
-            setBackupImportError({ isOpen: true, message: 'Failed to export backup. Please try again.' });
+            setBackupImportError({ isOpen: true, message: settingsText.failedExportBackup });
         }
     };
 
@@ -196,7 +222,7 @@ export const Settings: React.FC = () => {
             });
         } catch (err: unknown) {
             console.error('Backup verify failed:', err);
-            let message = 'Failed to verify backup file.';
+            let message = settingsText.failedVerifyBackup;
             if (api.isAxiosError(err)) {
                 message = err.response?.data?.message || err.response?.data?.error || message;
             }
@@ -233,7 +259,7 @@ export const Settings: React.FC = () => {
             });
         } catch (err: unknown) {
             console.error('Legacy DB verify failed:', err);
-            let message = 'Failed to verify legacy database file.';
+            let message = settingsText.failedVerifyLegacyDb;
             if (api.isAxiosError(err)) {
                 message = err.response?.data?.message || err.response?.data?.error || message;
             }
@@ -293,9 +319,9 @@ export const Settings: React.FC = () => {
                         <Archive size={24} className="text-indigo-600 dark:text-indigo-400 sm:hidden" />
                     </div>
                     <div className="text-center">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Export Backup</h3>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('settings.exportBackup')}</h3>
                         <p className="text-xs text-slate-500 dark:text-neutral-400 font-medium max-w-[200px] mx-auto">
-                            Exports an `.excalidash` archive organized by collections
+                            {t('settings.exportBackupDesc')}
                         </p>
                     </div>
                     <div className="w-full flex flex-col items-stretch gap-2 pt-2">
@@ -303,13 +329,13 @@ export const Settings: React.FC = () => {
                             onClick={exportBackup}
                             className="w-full px-4 py-2 text-sm font-bold rounded-xl border-2 border-black dark:border-neutral-700 bg-indigo-600 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all"
                         >
-                            Export
+                            {t('settings.export')}
                         </button>
                         <select
                             value={backupExportExt}
                             onChange={(e) => setBackupExportExt(e.target.value as any)}
                             className="w-full px-3 py-2 text-sm font-bold rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-900 dark:text-white"
-                            title="Download name"
+                            title={t('settings.downloadName')}
                         >
                             <option value="excalidash">.excalidash</option>
                             <option value="excalidash.zip">.excalidash.zip</option>
@@ -335,10 +361,10 @@ export const Settings: React.FC = () => {
                     </div>
                     <div className="text-center">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
-                            {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+                            {theme === 'light' ? t('settings.darkMode') : t('settings.lightMode')}
                         </h3>
                         <p className="text-xs text-slate-500 dark:text-neutral-400 font-medium max-w-[200px] mx-auto">
-                            Switch to {theme === 'light' ? 'dark' : 'light'} theme
+                            {theme === 'light' ? t('settings.switchToDarkTheme') : t('settings.switchToLightTheme')}
                         </p>
                     </div>
                 </button>
@@ -366,7 +392,7 @@ export const Settings: React.FC = () => {
                             <RefreshCw size={32} className={clsx("text-emerald-600 dark:text-emerald-400 relative z-10 hidden sm:block", updateLoading && "animate-spin")} />
                         </div>
                         <div className="min-w-0">
-                            <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white truncate">Updates</h3>
+                            <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white truncate">{t('settings.updates')}</h3>
                         </div>
                     </div>
 
@@ -374,7 +400,7 @@ export const Settings: React.FC = () => {
                         <div className="p-3 sm:p-4 rounded-xl border-2 border-slate-100 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-800/30">
                             <div className="flex items-center justify-between mb-2">
                                 <label className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 dark:text-neutral-500" htmlFor="settings-update-channel">
-                                    Channel
+                                    {t('settings.channel')}
                                 </label>
                                 <span className={clsx(
                                     "px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-tighter border",
@@ -399,14 +425,14 @@ export const Settings: React.FC = () => {
                                 }}
                                 className="w-full h-10 px-2 sm:px-3 rounded-lg border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]"
                             >
-                                <option value="stable">Stable</option>
-                                <option value="prerelease">Prerelease</option>
+                                <option value="stable">{t('settings.stable')}</option>
+                                <option value="prerelease">{t('settings.prerelease')}</option>
                             </select>
                         </div>
 
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between px-1">
-                                <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-neutral-500 uppercase tracking-widest">Current Status</span>
+                                <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-neutral-500 uppercase tracking-widest">{t('settings.currentStatus')}</span>
                             </div>
                             <div className={clsx(
                                 "px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border-2 font-bold text-xs sm:text-sm flex items-center gap-2 sm:gap-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]",
@@ -418,17 +444,17 @@ export const Settings: React.FC = () => {
                             )}>
                                 {updateLoading && <RefreshCw size={14} className="animate-spin flex-shrink-0" />}
                                 <span className="truncate">
-                                    {updateInfo?.outboundEnabled === false ? "Checks disabled" :
-                                     updateLoading ? "Checking..." :
-                                     updateInfo?.isUpdateAvailable ? `v${updateInfo.latestVersion} available` :
+                                    {updateInfo?.outboundEnabled === false ? t('settings.checksDisabled') :
+                                     updateLoading ? t('settings.checking') :
+                                     updateInfo?.isUpdateAvailable ? t('settings.versionAvailable', { version: updateInfo.latestVersion ?? '' }) :
                                      updateInfo?.latestVersion ? (
                                         <span className="flex items-center gap-1.5">
                                             <Check size={14} strokeWidth={3} className="text-emerald-500 flex-shrink-0" />
-                                            Up to date
+                                            {t('settings.upToDate')}
                                         </span>
                                      ) :
                                      updateError ? updateError :
-                                     "Status unknown"}
+                                     t('settings.statusUnknown')}
                                 </span>
                             </div>
                         </div>
@@ -441,7 +467,7 @@ export const Settings: React.FC = () => {
                             className="flex items-center justify-center gap-2 h-10 sm:h-11 rounded-xl border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-900 dark:text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] text-[9px] sm:text-[10px] font-black uppercase tracking-wider hover:-translate-y-0.5 transition-all active:translate-y-0 active:shadow-none disabled:opacity-50"
                             type="button"
                         >
-                            Check Now
+                            {t('settings.checkNow')}
                         </button>
 
                         <a
@@ -450,13 +476,13 @@ export const Settings: React.FC = () => {
                             rel="noreferrer"
                             className="flex items-center justify-center gap-2 h-10 sm:h-11 rounded-xl border-2 border-black dark:border-neutral-700 bg-indigo-600 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-[9px] sm:text-[10px] font-black uppercase tracking-wider hover:-translate-y-0.5 transition-all active:translate-y-0 active:shadow-none"
                         >
-                            Releases
+                            {t('settings.releases')}
                         </a>
                     </div>
 
                     {updateInfo?.error && !updateLoading && (
                         <div className="mt-4 p-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-[10px] font-bold text-red-600 dark:text-red-400 italic">
-                            Error: {updateInfo.error}
+                            {t('settings.errorPrefix', { message: updateInfo.error })}
                         </div>
                     )}
                 </div>
@@ -464,7 +490,7 @@ export const Settings: React.FC = () => {
 
             <details className="mt-8 bg-white/30 dark:bg-neutral-900/30 border border-slate-200/70 dark:border-neutral-800/70 rounded-2xl p-4 sm:p-6">
                 <summary className="cursor-pointer select-none font-bold text-slate-800 dark:text-neutral-200">
-                    Advanced / Legacy
+                    {t('settings.advancedLegacy')}
                 </summary>
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     <div className="relative">
@@ -491,10 +517,10 @@ export const Settings: React.FC = () => {
                             </div>
                             <div className="text-center">
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
-                                    {backupImportLoading ? 'Verifying…' : 'Import Backup'}
+                                    {backupImportLoading ? t('settings.verifying') : t('settings.importBackup')}
                                 </h3>
                                 <p className="text-xs text-slate-500 dark:text-neutral-400 font-medium max-w-[200px] mx-auto">
-                                    Merge-import a `.excalidash` backup into your account
+                                    {t('settings.importBackupDesc')}
                                 </p>
                             </div>
                         </button>
@@ -516,18 +542,18 @@ export const Settings: React.FC = () => {
                         </div>
                         <div className="text-center">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
-                                {authEnabled ? 'Authentication: On' : 'Authentication: Off'}
+                                {authEnabled ? t('settings.authOn') : t('settings.authOff')}
                             </h3>
                             <p className="text-xs text-slate-500 dark:text-neutral-400 font-medium max-w-[200px] mx-auto">
                                 {isManagedAuthMode
-                                    ? `Managed by AUTH_MODE=${authMode}`
+                                    ? t('settings.managedByAuthMode', { mode: authMode ?? '' })
                                     : authEnabled
                                         ? user?.role === 'ADMIN'
-                                            ? (authToggleLoading ? 'Disabling…' : 'Disable multi-user login')
-                                            : 'Only admins can disable'
+                                            ? (authToggleLoading ? t('settings.disabling') : t('settings.disableMultiUserLogin'))
+                                            : t('settings.onlyAdminsCanDisable')
                                         : authToggleLoading
-                                            ? 'Enabling…'
-                                            : 'Enable multi-user login'}
+                                            ? t('settings.enabling')
+                                            : t('settings.enableMultiUserLogin')}
                             </p>
                         </div>
                     </button>
@@ -546,7 +572,7 @@ export const Settings: React.FC = () => {
                                 const databaseFile = files.find(f => f.name.endsWith('.sqlite') || f.name.endsWith('.db'));
                                 if (databaseFile) {
                                     if (files.length > 1) {
-                                        setImportError({ isOpen: true, message: 'Please import legacy database files separately from other files.' });
+                                        setImportError({ isOpen: true, message: settingsText.importLegacyDbSeparately });
                                         e.target.value = '';
                                         return;
                                     }
@@ -561,10 +587,10 @@ export const Settings: React.FC = () => {
                                 if (result.failed > 0) {
                                     setImportError({
                                         isOpen: true,
-                                        message: `Import complete with errors.\nSuccess: ${result.success}\nFailed: ${result.failed}\nErrors:\n${result.errors.join('\n')}`
+                                        message: settingsText.importCompleteWithErrors(result.success, result.failed, result.errors.join('\n'))
                                     });
                                 } else {
-                                    setImportSuccess({ isOpen: true, message: `Imported ${result.success} file(s).` });
+                                    setImportSuccess({ isOpen: true, message: settingsText.importedFiles(result.success) });
                                 }
 
                                 e.target.value = '';
@@ -580,8 +606,8 @@ export const Settings: React.FC = () => {
                                 <Upload size={24} className="text-amber-600 dark:text-amber-400 sm:hidden" />
                             </div>
                             <div className="text-center">
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Legacy Import</h3>
-                                <p className="text-xs text-slate-500 dark:text-neutral-400 font-medium max-w-[200px] mx-auto">Import `.excalidraw`, legacy JSON, or merge a legacy `.db`</p>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('settings.legacyImport')}</h3>
+                                <p className="text-xs text-slate-500 dark:text-neutral-400 font-medium max-w-[200px] mx-auto">{t('settings.legacyImportDesc')}</p>
                             </div>
                         </button>
                     </div>
@@ -592,7 +618,7 @@ export const Settings: React.FC = () => {
                             <Info size={24} className="text-gray-600 dark:text-gray-400 sm:hidden" />
                         </div>
                         <div className="text-center">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Version Info</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('settings.versionInfo')}</h3>
                             <div className="text-[10px] sm:text-xs text-slate-500 dark:text-neutral-400 font-bold flex flex-col items-center gap-1">
                                 <span className="text-sm sm:text-base text-slate-900 dark:text-white">
                                     {appVersion}
@@ -610,22 +636,22 @@ export const Settings: React.FC = () => {
 
             <ConfirmModal
                 isOpen={legacyDbImportConfirmation.isOpen}
-                title="Merge-import legacy database?"
+                title={t('settings.mergeImportLegacyDb')}
                 message={
                     <div className="space-y-2">
-                        <div>This will merge legacy data into your account (it will not replace the server database).</div>
+                        <div>{t('settings.mergeImportLegacyDbDesc')}</div>
                         {legacyDbImportConfirmation.info && (
                             <div className="text-sm text-slate-700 dark:text-neutral-200 space-y-1">
-                                <div>Drawings: {legacyDbImportConfirmation.info.drawings}</div>
-                                <div>Collections: {legacyDbImportConfirmation.info.collections}</div>
-                                <div>Legacy migration: {legacyDbImportConfirmation.info.legacyLatestMigration || 'Unknown'}</div>
-                                <div>Current migration: {legacyDbImportConfirmation.info.currentLatestMigration || 'Unknown'}</div>
+                                <div>{t('settings.drawingsCount', { count: legacyDbImportConfirmation.info.drawings })}</div>
+                                <div>{t('settings.collectionsCount', { count: legacyDbImportConfirmation.info.collections })}</div>
+                                <div>{t('settings.legacyMigration', { value: legacyDbImportConfirmation.info.legacyLatestMigration || settingsText.unknown })}</div>
+                                <div>{t('settings.currentMigration', { value: legacyDbImportConfirmation.info.currentLatestMigration || settingsText.unknown })}</div>
                             </div>
                         )}
                     </div>
                 }
-                confirmText="Merge Import"
-                cancelText="Cancel"
+                confirmText={t('settings.mergeImport')}
+                cancelText={t('common.cancel')}
                 onConfirm={async () => {
                     const file = legacyDbImportConfirmation.file;
                     if (!file) return;
@@ -645,11 +671,16 @@ export const Settings: React.FC = () => {
 
                         setImportSuccess({
                             isOpen: true,
-                            message: `Legacy DB imported. Collections: +${response.data.collections.created} / ~${response.data.collections.updated}. Drawings: +${response.data.drawings.created} / ~${response.data.drawings.updated}.`,
+                            message: settingsText.legacyDbImported(
+                                response.data.collections.created,
+                                response.data.collections.updated,
+                                response.data.drawings.created,
+                                response.data.drawings.updated,
+                            ),
                         });
                     } catch (err: unknown) {
                         console.error(err);
-                        let message = 'Failed to import legacy database.';
+                        let message = settingsText.failedImportLegacyDb;
                         if (api.isAxiosError(err)) {
                             message = err.response?.data?.message || err.response?.data?.error || message;
                         }
@@ -661,9 +692,9 @@ export const Settings: React.FC = () => {
 
             <ConfirmModal
                 isOpen={importError.isOpen}
-                title="Import Failed"
+                title={t('settings.importFailed')}
                 message={importError.message}
-                confirmText="OK"
+                confirmText={t('common.ok')}
                 cancelText=""
                 showCancel={false}
                 isDangerous={false}
@@ -673,9 +704,9 @@ export const Settings: React.FC = () => {
 
             <ConfirmModal
                 isOpen={importSuccess.isOpen}
-                title="Import Successful"
+                title={t('settings.importSuccessful')}
                 message={importSuccess.message}
-                confirmText="OK"
+                confirmText={t('common.ok')}
                 showCancel={false}
                 isDangerous={false}
                 variant="success"
@@ -685,23 +716,23 @@ export const Settings: React.FC = () => {
 
             <ConfirmModal
                 isOpen={authToggleConfirm.isOpen}
-                title={authToggleConfirm.nextEnabled ? 'Enable authentication?' : 'Disable authentication?'}
+                title={authToggleConfirm.nextEnabled ? t('settings.enableAuthenticationTitle') : t('settings.disableAuthenticationTitle')}
                 message={
                     authToggleConfirm.nextEnabled
-                        ? 'This will require users to sign in. You will be prompted to set up an admin account immediately.'
+                        ? t('settings.enableAuthenticationDesc')
                         : (
                             <div className="space-y-2 text-left">
                                 <div>
-                                    This will turn off authentication for the entire instance.
+                                    {t('settings.disableAuthenticationDesc')}
                                 </div>
                                 <div className="font-semibold text-rose-700 dark:text-rose-300">
-                                    Recommendation: keep authentication enabled unless this instance is fully private.
+                                    {t('settings.disableAuthenticationRecommend')}
                                 </div>
                             </div>
                         )
                 }
-                confirmText={authToggleConfirm.nextEnabled ? 'Enable' : 'Continue'}
-                cancelText="Cancel"
+                confirmText={authToggleConfirm.nextEnabled ? t('settings.enable') : t('settings.continue')}
+                cancelText={t('common.cancel')}
                 isDangerous={!authToggleConfirm.nextEnabled}
                 onConfirm={async () => {
                     const nextEnabled = authToggleConfirm.nextEnabled;
@@ -718,19 +749,19 @@ export const Settings: React.FC = () => {
 
             <ConfirmModal
                 isOpen={authDisableFinalConfirmOpen}
-                title="Final warning: disable authentication?"
+                title={t('settings.finalDisableWarningTitle')}
                 message={
                     <div className="space-y-2 text-left">
                         <div>
-                            With authentication off, any user who can access this URL can view and modify all drawings and settings. They can also turn authentication back on and lock you out.
+                            {t('settings.finalDisableWarningDesc')}
                         </div>
                         <div className="font-semibold text-rose-700 dark:text-rose-300">
-                            This is only safe on a trusted private network.
+                            {t('settings.finalDisableWarningSafe')}
                         </div>
                     </div>
                 }
-                confirmText="Disable Authentication"
-                cancelText="Keep Enabled (Recommended)"
+                confirmText={t('settings.disableAuthentication')}
+                cancelText={t('settings.keepEnabledRecommended')}
                 isDangerous
                 onConfirm={async () => {
                     setAuthDisableFinalConfirmOpen(false);
@@ -741,14 +772,19 @@ export const Settings: React.FC = () => {
 
             <ConfirmModal
                 isOpen={backupImportConfirmation.isOpen}
-                title="Import backup?"
+                title={t('settings.importBackupTitle')}
                 message={
                     backupImportConfirmation.info
-                        ? `This will merge ${backupImportConfirmation.info.collections} collection(s) and ${backupImportConfirmation.info.drawings} drawing(s) from a Format v${backupImportConfirmation.info.formatVersion} backup exported at ${backupImportConfirmation.info.exportedAt}.`
-                        : 'This will merge the backup into your account.'
+                        ? t('settings.importBackupConfirmDetailed', {
+                            collections: backupImportConfirmation.info.collections,
+                            drawings: backupImportConfirmation.info.drawings,
+                            formatVersion: backupImportConfirmation.info.formatVersion,
+                            exportedAt: backupImportConfirmation.info.exportedAt,
+                        })
+                        : t('settings.importBackupConfirmSimple')
                 }
-                confirmText="Import"
-                cancelText="Cancel"
+                confirmText={t('settings.import')}
+                cancelText={t('common.cancel')}
                 isDangerous={false}
                 onConfirm={async () => {
                     const file = backupImportConfirmation.file;
@@ -765,7 +801,7 @@ export const Settings: React.FC = () => {
                         setBackupImportSuccess(true);
                     } catch (err: unknown) {
                         console.error('Backup import failed:', err);
-                        let message = 'Failed to import backup.';
+                        let message = settingsText.failedImportBackup;
                         if (api.isAxiosError(err)) {
                             message = err.response?.data?.message || err.response?.data?.error || message;
                         }
@@ -780,9 +816,9 @@ export const Settings: React.FC = () => {
 
             <ConfirmModal
                 isOpen={backupImportSuccess}
-                title="Backup Imported"
-                message="Backup imported successfully."
-                confirmText="OK"
+                title={t('settings.backupImported')}
+                message={t('settings.backupImportedSuccessfully')}
+                confirmText={t('common.ok')}
                 showCancel={false}
                 isDangerous={false}
                 variant="success"
@@ -792,9 +828,9 @@ export const Settings: React.FC = () => {
 
             <ConfirmModal
                 isOpen={backupImportError.isOpen}
-                title="Backup Import Failed"
+                title={t('settings.backupImportFailed')}
                 message={backupImportError.message}
-                confirmText="OK"
+                confirmText={t('common.ok')}
                 cancelText=""
                 showCancel={false}
                 isDangerous={false}
