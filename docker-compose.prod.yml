@@ -1,6 +1,6 @@
 services:
   backend:
-    image: zimengxiong/excalidash-backend:latest
+    image: ${BACKEND_IMAGE:-kinsanka/excalidash-backend}:${APP_TAG:-latest}
     container_name: excalidash-backend
     environment:
       - DATABASE_URL=file:/app/prisma/dev.db
@@ -38,7 +38,7 @@ services:
       retries: 3
 
   frontend:
-    image: zimengxiong/excalidash-frontend:latest
+    image: ${FRONTEND_IMAGE:-kinsanka/excalidash-frontend}:${APP_TAG:-latest}
     container_name: excalidash-frontend
     ports:
       - "6767:80"
