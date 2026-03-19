@@ -4,6 +4,8 @@
 
 > Chinese-enhanced fork of [ZimengXiong/ExcaliDash](https://github.com/ZimengXiong/ExcaliDash) with Simplified Chinese UI, updated Excalidraw CJK font support, and Docker-ready deployment.
 
+[English](./README.md) | [简体中文](./README.zh-CN.md)
+
 ![License](https://img.shields.io/github/license/zimengxiong/ExcaliDash)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://hub.docker.com)
