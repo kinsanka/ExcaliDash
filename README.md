@@ -2,6 +2,8 @@
 
 # ExcaliDash
 
+> Chinese-enhanced fork of [ZimengXiong/ExcaliDash](https://github.com/ZimengXiong/ExcaliDash) with Simplified Chinese UI, updated Excalidraw CJK font support, and Docker-ready deployment.
+
 ![License](https://img.shields.io/github/license/zimengxiong/ExcaliDash)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://hub.docker.com)
@@ -10,9 +12,24 @@ A self-hosted dashboard and organizer for [Excalidraw](https://github.com/excali
 
 ![](readme-assets/demo.gif)
 
+## Fork Notes
+
+This fork is intended for users who want a Chinese-friendly ExcaliDash deployment without maintaining their own patches.
+
+- Simplified Chinese UI for the main user flows
+- Excalidraw upgraded to `0.18.0` for official CJK font support
+- Docker Compose production file preconfigured for this fork's image names
+- Keeps the upstream project structure so future syncs remain manageable
+
+Project links:
+
+- Upstream: [ZimengXiong/ExcaliDash](https://github.com/ZimengXiong/ExcaliDash)
+- This fork: `kinsanka/ExcaliDash`
+
 ## Table of Contents
 
 - [Features](#features)
+- [Fork Notes](#fork-notes)
 - [Upgrading](#upgrading)
 - [Installation](#installation)
   - [Quickstart](#quickstart)
@@ -138,7 +155,7 @@ Prereqs: Docker + Docker Compose v2.
 
 ```bash
 # Download docker-compose.prod.yml
-curl -OL https://raw.githubusercontent.com/ZimengXiong/ExcaliDash/main/docker-compose.prod.yml
+curl -OL https://raw.githubusercontent.com/kinsanka/ExcaliDash/main/docker-compose.prod.yml
 
 # Pull images
 docker compose -f docker-compose.prod.yml pull
@@ -147,6 +164,20 @@ docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
 
 # Access the frontend at localhost:6767
+```
+
+Default images used by this fork:
+
+```yaml
+backend: kinsanka/excalidash-backend:latest
+frontend: kinsanka/excalidash-frontend:latest
+```
+
+To pin a specific version:
+
+```bash
+APP_TAG=v0.4.27-zh.1 docker compose -f docker-compose.prod.yml pull
+APP_TAG=v0.4.27-zh.1 docker compose -f docker-compose.prod.yml up -d
 ```
 
 For single-container deployments, `JWT_SECRET` can be omitted and will be auto-generated and persisted in the backend volume on first start. For portability and most production deployments, set a fixed `JWT_SECRET` explicitly.
@@ -162,10 +193,10 @@ By default, the provided Compose files set `TRUST_PROXY=false` for safer setup. 
 
 ```bash
 # Clone the repository (recommended)
-git clone git@github.com:ZimengXiong/ExcaliDash.git
+git clone git@github.com:kinsanka/ExcaliDash.git
 
 # or, clone with HTTPS
-# git clone https://github.com/ZimengXiong/ExcaliDash.git
+# git clone https://github.com/kinsanka/ExcaliDash.git
 
 docker compose build
 docker compose up -d
@@ -356,10 +387,10 @@ Base values are documented in `backend/.env.example`. Common ones to care about:
 
 ```bash
 # Clone the repository (recommended)
-git clone git@github.com:ZimengXiong/ExcaliDash.git
+git clone git@github.com:kinsanka/ExcaliDash.git
 
 # or, clone with HTTPS
-# git clone https://github.com/ZimengXiong/ExcaliDash.git
+# git clone https://github.com/kinsanka/ExcaliDash.git
 ```
 
 </details>
@@ -461,6 +492,7 @@ Common flags:
 
 # Credits
 
+- Original project: [ZimengXiong/ExcaliDash](https://github.com/ZimengXiong/ExcaliDash)
 - Example designs from:
   - https://github.com/Prakash-sa/system-design-ultimatum/tree/main
   - https://github.com/kitsteam/excalidraw-examples/tree/main
