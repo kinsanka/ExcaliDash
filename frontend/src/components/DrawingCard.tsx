@@ -91,6 +91,19 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
   const [fullData, setFullData] = useState<HydratedDrawingData | null>(null);
   const hasEmbeddedImages = previewHasEmbeddedImages(previewSvg);
 
+  const getCollectionDisplayName = useCallback(
+    (collection: Collection | null | undefined) => {
+      if (!collection) {
+        return t("common.collection");
+      }
+      if (collection.id === "trash" || collection.name === "Trash") {
+        return t("common.trash");
+      }
+      return collection.name;
+    },
+    [t]
+  );
+
   const fullDataRef = React.useRef(fullData);
   fullDataRef.current = fullData;
   const fullDataPromiseRef = React.useRef<Promise<HydratedDrawingData> | null>(null);
@@ -349,7 +362,7 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                 {isShared
                   ? t("common.shared")
                   : drawing.collectionId
-                    ? (collections.find(c => c.id === drawing.collectionId)?.name || t("common.collection"))
+                    ? (getCollectionDisplayName(collections.find(c => c.id === drawing.collectionId)) || t("common.collection"))
                     : t("common.unorganized")}
               </button>
 
@@ -378,9 +391,9 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                           drawing.collectionId === c.id ? "text-neutral-900 dark:text-white font-bold bg-neutral-100 dark:bg-neutral-800" : "text-slate-600 dark:text-neutral-400"
                         )}
                       >
-                        <span className="truncate">{c.name}</span>
-                        {drawing.collectionId === c.id && <Check size={12} />}
-                      </button>
+                          <span className="truncate">{getCollectionDisplayName(c)}</span>
+                          {drawing.collectionId === c.id && <Check size={12} />}
+                        </button>
                     ))}
                   </div>
                 </>
@@ -451,7 +464,7 @@ export const DrawingCard: React.FC<DrawingCardProps> = ({
                             drawing.collectionId === c.id ? "text-neutral-900 dark:text-white font-medium" : "text-slate-600 dark:text-neutral-400"
                           )}
                         >
-                          <span className="truncate">{c.name}</span>
+                          <span className="truncate">{getCollectionDisplayName(c)}</span>
                           {drawing.collectionId === c.id && <Check size={10} />}
                         </button>
                       ))}

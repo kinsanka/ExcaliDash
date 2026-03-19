@@ -46,5 +46,9 @@ export default defineConfig(({ command }) => {
         },
       },
     },
+    build: {
+      // Skip gzip size reporting to reduce peak memory during Docker builds.
+      reportCompressedSize: false,
+    },
   };
 });

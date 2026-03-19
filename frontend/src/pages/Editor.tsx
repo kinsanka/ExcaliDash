@@ -27,6 +27,7 @@ import { useEditorChrome } from './editor/useEditorChrome';
 import { useEditorIdentity } from './editor/useEditorIdentity';
 import { ShareModal } from '../components/ShareModal';
 import { useI18n } from '../context/I18nContext';
+import { setupExcalidrawZhCnFallbackTranslations } from '../excalidraw/zhCnFallbackTranslations';
 
 interface Peer extends UserIdentity {
   isActive: boolean;
@@ -163,80 +164,11 @@ export const Editor: React.FC = () => {
       return;
     }
 
-    const root = editorViewportRef.current;
-    if (!root) {
+    if (!editorViewportRef.current) {
       return;
     }
 
-    const textReplacements = new Map<string, string>([
-      ["Find on canvas", "在画布中查找"],
-      ["Excalidraw links", "Excalidraw 链接"],
-      ["Follow us", "关注我们"],
-      ["Discord chat", "Discord 聊天"],
-      ["Toggle grid", "切换网格"],
-      ["Canvas & Shape properties", "画布和图形属性"],
-      ["General", "常规"],
-      ["Shape properties", "图形属性"],
-      ["Shapes", "图形"],
-      ["Mixed", "混合"],
-      ["rectangle", "矩形"],
-      ["diamond", "菱形"],
-      ["ellipse", "椭圆"],
-      ["arrow", "箭头"],
-      ["line", "线条"],
-      ["freedraw", "自由绘制"],
-      ["selection", "选择"],
-      ["text", "文本"],
-      ["library", "素材库"],
-      ["lock", "锁定"],
-      ["image", "图片"],
-    ]);
-
-    const replaceText = (node: Node) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        const value = node.textContent?.trim();
-        if (value && textReplacements.has(value)) {
-          node.textContent = node.textContent?.replace(value, textReplacements.get(value) || value) ?? null;
-        }
-        return;
-      }
-
-      if (!(node instanceof HTMLElement)) {
-        return;
-      }
-
-      const ariaLabel = node.getAttribute("aria-label");
-      if (ariaLabel && textReplacements.has(ariaLabel)) {
-        node.setAttribute("aria-label", textReplacements.get(ariaLabel) || ariaLabel);
-      }
-
-      const title = node.getAttribute("title");
-      if (title && textReplacements.has(title)) {
-        node.setAttribute("title", textReplacements.get(title) || title);
-      }
-
-      node.childNodes.forEach(replaceText);
-    };
-
-    const applyTranslations = () => replaceText(root);
-    applyTranslations();
-
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        mutation.addedNodes.forEach(replaceText);
-        if (mutation.type === "characterData" && mutation.target) {
-          replaceText(mutation.target);
-        }
-      }
-    });
-
-    observer.observe(root, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-    });
-
-    return () => observer.disconnect();
+    return setupExcalidrawZhCnFallbackTranslations();
   }, [excalidrawLangCode]);
 
   useEffect(() => {
