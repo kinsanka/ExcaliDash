@@ -389,8 +389,30 @@ export const Editor: React.FC = () => {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
       withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelayMax: 10000,
     });
     socketRef.current = socket;
+
+    const joinRoom = () => {
+      socket.emit('join-room', { drawingId: id, user: me }, (payload: any) => {
+        const serverUser = payload?.user;
+        if (!serverUser || typeof serverUser.id !== "string") return;
+        const next: UserIdentity = {
+          id: serverUser.id,
+          name: typeof serverUser.name === "string" ? serverUser.name : me.name,
+          initials: typeof serverUser.initials === "string" ? serverUser.initials : me.initials,
+          color: typeof serverUser.color === "string" ? serverUser.color : me.color,
+        };
+        socketMeRef.current = next;
+        setSocketMe(next);
+        const lastUsers = lastPresenceUsersRef.current;
+        if (lastUsers) {
+          setPeers(lastUsers.filter((u) => u.id !== next.id));
+        }
+      });
+    };
 
     if (import.meta.env.DEV) {
       (window as any).__EXCALIDASH_SOCKET_STATUS__ = {
@@ -398,28 +420,18 @@ export const Editor: React.FC = () => {
       };
       socket.on("connect", () => {
         (window as any).__EXCALIDASH_SOCKET_STATUS__ = { connected: true };
+        joinRoom();
       });
       socket.on("disconnect", () => {
         (window as any).__EXCALIDASH_SOCKET_STATUS__ = { connected: false };
       });
+    } else {
+      socket.on("connect", joinRoom);
     }
 
-    socket.emit('join-room', { drawingId: id, user: me }, (payload: any) => {
-      const serverUser = payload?.user;
-      if (!serverUser || typeof serverUser.id !== "string") return;
-      const next: UserIdentity = {
-        id: serverUser.id,
-        name: typeof serverUser.name === "string" ? serverUser.name : me.name,
-        initials: typeof serverUser.initials === "string" ? serverUser.initials : me.initials,
-        color: typeof serverUser.color === "string" ? serverUser.color : me.color,
-      };
-      socketMeRef.current = next;
-      setSocketMe(next);
-      const lastUsers = lastPresenceUsersRef.current;
-      if (lastUsers) {
-        setPeers(lastUsers.filter((u) => u.id !== next.id));
-      }
-    });
+    if (socket.connected) {
+      joinRoom();
+    }
 
     const renderLoop = () => {
       if (cursorBuffer.current.size > 0 && excalidrawAPI.current) {
@@ -630,6 +642,7 @@ export const Editor: React.FC = () => {
       window.removeEventListener('blur', onBlur);
       document.removeEventListener('mouseenter', onMouseEnter);
       document.removeEventListener('mouseleave', onMouseLeave);
+      socket.off('connect', joinRoom);
       socket.off('presence-update');
       socket.off('error');
       socket.off('cursor-move');

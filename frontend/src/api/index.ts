@@ -3,6 +3,7 @@ import type { Drawing, Collection, DrawingSummary } from "../types";
 import { normalizePreviewSvg } from "../utils/previewSvg";
 
 export const API_URL = import.meta.env.VITE_API_URL || "/api";
+const MUTATION_TIMEOUT_MS = 15_000;
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -580,17 +581,23 @@ export const createDrawing = async (
   name?: string,
   collectionId?: string | null
 ) => {
-  const response = await api.post<{ id: string }>("/drawings", {
-    name: name || "Untitled Drawing",
-    collectionId: collectionId ?? null,
-    elements: [],
-    appState: {},
-  });
+  const response = await api.post<{ id: string }>(
+    "/drawings",
+    {
+      name: name || "Untitled Drawing",
+      collectionId: collectionId ?? null,
+      elements: [],
+      appState: {},
+    },
+    { timeout: MUTATION_TIMEOUT_MS }
+  );
   return response.data;
 };
 
 export const updateDrawing = async (id: string, data: Partial<Drawing>) => {
-  const response = await api.put<Drawing>(`/drawings/${id}`, data);
+  const response = await api.put<Drawing>(`/drawings/${id}`, data, {
+    timeout: MUTATION_TIMEOUT_MS,
+  });
   return deserializeDrawing(response.data);
 };
 
@@ -635,6 +642,10 @@ export const getLibrary = async (): Promise<LibraryItem[]> => {
 };
 
 export const updateLibrary = async (items: LibraryItem[]): Promise<LibraryItem[]> => {
-  const response = await api.put<{ items: LibraryItem[] }>("/library", { items });
+  const response = await api.put<{ items: LibraryItem[] }>(
+    "/library",
+    { items },
+    { timeout: MUTATION_TIMEOUT_MS }
+  );
   return response.data.items;
 };
