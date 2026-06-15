@@ -26,7 +26,7 @@ This fork is intended for users who want a Chinese-friendly ExcaliDash deploymen
 Project links:
 
 - Upstream: [ZimengXiong/ExcaliDash](https://github.com/ZimengXiong/ExcaliDash)
-- This fork: `kinsanka/ExcaliDash`
+- This fork: `kinsanka/ExcaliDash_i18n_zh_CN`
 
 ## Table of Contents
 
@@ -107,7 +107,7 @@ Project links:
 
 # Upgrading
 
-See [release notes](https://github.com/ZimengXiong/ExcaliDash/releases) for a specific release.
+See [release notes](https://github.com/kinsanka/ExcaliDash_i18n_zh_CN/releases) for a specific release.
 
 ExcaliDash includes an in-app update notifier that checks GitHub Releases. If your deployment must not make outbound network calls, disable it on the backend:
 
@@ -157,7 +157,7 @@ Prereqs: Docker + Docker Compose v2.
 
 ```bash
 # Download docker-compose.prod.yml
-curl -OL https://raw.githubusercontent.com/kinsanka/ExcaliDash/main/docker-compose.prod.yml
+curl -OL https://raw.githubusercontent.com/kinsanka/ExcaliDash_i18n_zh_CN/main/docker-compose.prod.yml
 
 # Pull images
 docker compose -f docker-compose.prod.yml pull
@@ -178,8 +178,8 @@ frontend: kinsanka/excalidash-frontend:latest
 To pin a specific version:
 
 ```bash
-APP_TAG=v0.4.27-zh.1 docker compose -f docker-compose.prod.yml pull
-APP_TAG=v0.4.27-zh.1 docker compose -f docker-compose.prod.yml up -d
+APP_TAG=v0.5.0-zh.1 docker compose -f docker-compose.prod.yml pull
+APP_TAG=v0.5.0-zh.1 docker compose -f docker-compose.prod.yml up -d
 ```
 
 For single-container deployments, `JWT_SECRET` can be omitted and will be auto-generated and persisted in the backend volume on first start. For portability and most production deployments, set a fixed `JWT_SECRET` explicitly.
@@ -195,10 +195,10 @@ By default, the provided Compose files set `TRUST_PROXY=false` for safer setup. 
 
 ```bash
 # Clone the repository (recommended)
-git clone git@github.com:kinsanka/ExcaliDash.git
+git clone git@github.com:kinsanka/ExcaliDash_i18n_zh_CN.git
 
 # or, clone with HTTPS
-# git clone https://github.com/kinsanka/ExcaliDash.git
+# git clone https://github.com/kinsanka/ExcaliDash_i18n_zh_CN.git
 
 docker compose build
 docker compose up -d
@@ -389,10 +389,10 @@ Base values are documented in `backend/.env.example`. Common ones to care about:
 
 ```bash
 # Clone the repository (recommended)
-git clone git@github.com:kinsanka/ExcaliDash.git
+git clone git@github.com:kinsanka/ExcaliDash_i18n_zh_CN.git
 
 # or, clone with HTTPS
-# git clone https://github.com/kinsanka/ExcaliDash.git
+# git clone https://github.com/kinsanka/ExcaliDash_i18n_zh_CN.git
 ```
 
 </details>
@@ -403,7 +403,7 @@ git clone git@github.com:kinsanka/ExcaliDash.git
 ## Frontend
 
 ```bash
-cd ExcaliDash/frontend
+cd ExcaliDash_i18n_zh_CN/frontend
 npm install
 
 # Copy environment file and customize if needed
@@ -420,7 +420,7 @@ npm run dev
 ## Backend
 
 ```bash
-cd ExcaliDash/backend
+cd ExcaliDash_i18n_zh_CN/backend
 npm install
 
 # Copy environment file and customize if needed

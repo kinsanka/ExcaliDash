@@ -19,7 +19,7 @@
 项目关系：
 
 - 上游项目：[ZimengXiong/ExcaliDash](https://github.com/ZimengXiong/ExcaliDash)
-- 当前 fork：`kinsanka/ExcaliDash`
+- 当前 fork：`kinsanka/ExcaliDash_i18n_zh_CN`
 
 ## 功能概览
 
@@ -41,7 +41,7 @@
 
 ```bash
 # 下载生产部署 compose 文件
-curl -OL https://raw.githubusercontent.com/kinsanka/ExcaliDash/main/docker-compose.prod.yml
+curl -OL https://raw.githubusercontent.com/kinsanka/ExcaliDash_i18n_zh_CN/main/docker-compose.prod.yml
 
 # 拉取镜像
 docker compose -f docker-compose.prod.yml pull
@@ -64,8 +64,8 @@ frontend: kinsanka/excalidash-frontend:latest
 如果你想固定版本，建议显式指定 tag：
 
 ```bash
-APP_TAG=v0.4.27-zh.1 docker compose -f docker-compose.prod.yml pull
-APP_TAG=v0.4.27-zh.1 docker compose -f docker-compose.prod.yml up -d
+APP_TAG=v0.5.0-zh.1 docker compose -f docker-compose.prod.yml pull
+APP_TAG=v0.5.0-zh.1 docker compose -f docker-compose.prod.yml up -d
 ```
 
 ## 常用部署说明
@@ -145,8 +145,8 @@ docker compose up -d
 如果你想基于源码本地跑：
 
 ```bash
-git clone https://github.com/kinsanka/ExcaliDash.git
-cd ExcaliDash
+git clone https://github.com/kinsanka/ExcaliDash_i18n_zh_CN.git
+cd ExcaliDash_i18n_zh_CN
 docker compose up -d --build
 ```
 
