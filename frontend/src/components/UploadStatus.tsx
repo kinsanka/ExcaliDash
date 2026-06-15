@@ -2,8 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useUpload } from '../context/UploadContext';
 import { Loader2, CheckCircle2, AlertCircle, X, ChevronUp, ChevronDown } from 'lucide-react';
 import clsx from 'clsx';
+import { useI18n } from '../context/I18nContext';
 
 export const UploadStatus: React.FC = () => {
+  const { t } = useI18n();
   const { tasks, clearCompleted, clearSuccessful, removeTask, isUploading } = useUpload();
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -67,14 +69,14 @@ export const UploadStatus: React.FC = () => {
         <div className="w-80 bg-white dark:bg-neutral-900 rounded-xl border-2 border-black dark:border-neutral-700 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-200 mb-2">
           <div className="p-3 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between bg-slate-50 dark:bg-neutral-800/50">
             <h3 className="font-bold text-sm text-slate-700 dark:text-slate-200">
-              Uploads ({activeCount > 0 ? `${activeCount} active` : 'Done'})
+              {t('upload.title')} ({activeCount > 0 ? t('upload.activeCount', { count: activeCount }) : t('upload.done')})
             </h3>
             {(completedCount > 0 || errorCount > 0) && !isUploading && (
               <button 
                 onClick={clearCompleted}
                 className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-medium"
               >
-                Clear All
+                {t('upload.clearAll')}
               </button>
             )}
           </div>
@@ -114,7 +116,7 @@ export const UploadStatus: React.FC = () => {
                       />
                     </div>
                     {task.status === 'error' ? (
-                       <span className="text-[10px] text-rose-500 font-medium truncate max-w-[80px]" title={task.error}>Failed</span>
+                       <span className="text-[10px] text-rose-500 font-medium truncate max-w-[80px]" title={task.error}>{t('upload.failed')}</span>
                     ) : (
                        <span className="text-[10px] text-slate-400 font-medium w-8 text-right">{task.progress}%</span>
                     )}

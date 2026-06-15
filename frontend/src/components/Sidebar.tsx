@@ -245,7 +245,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </form>
             )}
 
-            {collections.filter(c => c.name !== 'Trash').map((collection) => (
+            {collections.filter(c => c.id !== 'trash').map((collection) => (
               <SidebarItem
                 key={collection.id}
                 id={collection.id}

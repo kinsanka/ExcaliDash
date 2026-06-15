@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { LogIn, RefreshCw, XCircle } from 'lucide-react';
 import { api, isAxiosError } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useI18n } from '../context/I18nContext';
 import {
   IMPERSONATION_KEY,
   USER_KEY,
@@ -47,6 +48,7 @@ const normalizeTarget = (target: ImpersonationState['target']): ImpersonationTar
 
 export const ImpersonationBanner: React.FC = () => {
   const { authEnabled } = useAuth();
+  const { t } = useI18n();
   const [impersonation, setImpersonation] = useState<ImpersonationState | null>(null);
   const [targets, setTargets] = useState<ImpersonationTarget[]>([]);
   const [loadingTargets, setLoadingTargets] = useState(false);
@@ -93,7 +95,7 @@ export const ImpersonationBanner: React.FC = () => {
       const response = await api.get<ImpersonationTargetsResponse>('/auth/impersonation-targets');
       setTargets(response.data.users || []);
     } catch (err: unknown) {
-      let message = 'Failed to load impersonation targets';
+      let message = t('admin.failedLoadImpersonationTargets');
       if (isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
       }
@@ -138,7 +140,7 @@ export const ImpersonationBanner: React.FC = () => {
       }
       window.location.reload();
     } catch (err: unknown) {
-      let message = 'Failed to stop impersonation';
+      let message = t('admin.failedStopImpersonation');
       if (isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
         if (
@@ -178,7 +180,7 @@ export const ImpersonationBanner: React.FC = () => {
       localStorage.setItem(USER_KEY, JSON.stringify(response.data.user));
       window.location.reload();
     } catch (err: unknown) {
-      let message = 'Failed to switch impersonation user';
+      let message = t('admin.failedSwitchImpersonationUser');
       if (isAxiosError(err)) {
         message = err.response?.data?.message || err.response?.data?.error || message;
       }
@@ -197,7 +199,7 @@ export const ImpersonationBanner: React.FC = () => {
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="flex items-center gap-1.5 text-red-700 dark:text-red-400 flex-shrink-0">
             <LogIn size={14} strokeWidth={2.5} />
-            <span className="text-[10px] font-black uppercase tracking-wider">Impersonating</span>
+            <span className="text-[10px] font-black uppercase tracking-wider">{t('admin.impersonating')}</span>
           </div>
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-sm font-bold text-red-900 dark:text-red-100 truncate">
@@ -211,7 +213,7 @@ export const ImpersonationBanner: React.FC = () => {
 
         <div className="flex items-center gap-2 ml-auto">
           <div className="hidden lg:flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-red-700/60 dark:text-red-400/40">
-            Switch:
+            {t('admin.switchImpersonation')}
           </div>
           <select
             value={impersonation.target.id}
@@ -234,7 +236,7 @@ export const ImpersonationBanner: React.FC = () => {
             className="h-8 flex items-center justify-center gap-1.5 px-3 rounded-lg bg-red-600 dark:bg-red-600/80 text-[11px] font-black uppercase tracking-wider text-white hover:bg-red-700 dark:hover:bg-red-500 transition-all disabled:opacity-50 shadow-sm shadow-red-900/10"
           >
             <XCircle size={14} strokeWidth={2.5} />
-            <span className="hidden sm:inline">Stop</span>
+            <span className="hidden sm:inline">{t('admin.stop')}</span>
           </button>
         </div>
       </div>
@@ -244,7 +246,7 @@ export const ImpersonationBanner: React.FC = () => {
           {loadingTargets ? (
             <span className="inline-flex items-center gap-1.5">
               <RefreshCw size={10} className="animate-spin" />
-              Syncing targets...
+              {t('admin.syncingTargets')}
             </span>
           ) : null}
           {error ? <span className="truncate">{error}</span> : null}
@@ -254,7 +256,7 @@ export const ImpersonationBanner: React.FC = () => {
               onClick={() => void loadTargets()}
               className="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-900/40 border border-red-200 dark:border-red-700/50 hover:bg-red-200 transition-colors"
             >
-              Retry
+              {t('common.retry')}
             </button>
           ) : null}
         </div>

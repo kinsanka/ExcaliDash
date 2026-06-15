@@ -1,6 +1,7 @@
 import { exportToSvg } from "@excalidraw/excalidraw";
 import { api } from "../api";
 import { type UploadStatus } from "../context/UploadContext";
+import { translate } from "../i18n";
 
 type ExcalidrawLikeData = {
   // Standard Excalidraw file has { type, version, source, elements, appState, files }.
@@ -160,7 +161,7 @@ const importLegacyZip = async (
       success: 0,
       failed: 1,
       errors: [
-        `${file.name}: This looks like an ExcaliDash backup (.excalidash). Use "Import Backup" instead of Legacy Import.`,
+        translate("import.backupDetectedUseBackupImport", { fileName: file.name }),
       ],
     };
   }
@@ -176,7 +177,7 @@ const importLegacyZip = async (
     return {
       success: 0,
       failed: 1,
-      errors: [`${file.name}: Zip contains no .excalidraw/.json drawings.`],
+      errors: [translate("import.zipNoDrawings", { fileName: file.name })],
     };
   }
 
@@ -220,7 +221,7 @@ const importLegacyZip = async (
             name:
               typeof d.name === "string" && d.name.trim().length > 0
                 ? d.name
-                : `Imported Drawing ${i + 1}`,
+                : translate("import.importedDrawingNumbered", { index: i + 1 }),
             elements: extracted.elements,
             appState: extracted.appState,
             files: extracted.files || null,
@@ -255,7 +256,10 @@ const importLegacyZip = async (
 
       const svg = await makeSvgPreview(extracted.elements, extracted.appState, extracted.files);
       const payload = {
-        name: basenameWithoutExt(entryName) || basenameWithoutExt(file.name) || "Imported Drawing",
+        name:
+          basenameWithoutExt(entryName) ||
+          basenameWithoutExt(file.name) ||
+          translate("import.importedDrawing"),
         elements: extracted.elements,
         appState: extracted.appState,
         files: extracted.files || null,
@@ -270,7 +274,7 @@ const importLegacyZip = async (
     } catch (err: any) {
       failed += 1;
       errors.push(
-        `${file.name}:${entryName}: ${err?.message || "Failed to import zip entry"}`
+        `${file.name}:${entryName}: ${err?.message || translate("import.failedZipEntry")}`
       );
     }
   }
@@ -294,7 +298,7 @@ export const importDrawings = async (
   );
 
   if (drawingFiles.length === 0) {
-    return { success: 0, failed: 0, errors: ["No supported files found."] };
+    return { success: 0, failed: 0, errors: [translate("import.noSupportedFiles")] };
   }
 
   let successCount = 0;
@@ -357,7 +361,7 @@ export const importDrawings = async (
           err?.response?.data?.message ||
           err?.response?.data?.error ||
           err?.message ||
-          "Upload failed";
+          translate("import.uploadFailed");
         errors.push(`${file.name}: ${errorMessage}`);
         if (onProgress) onProgress(fileIndex, 'error', 0, errorMessage);
       }
@@ -395,7 +399,7 @@ export const importLegacyFiles = async (
   );
 
   if (drawingFiles.length === 0) {
-    return { success: 0, failed: 0, errors: ["No supported files found."] };
+    return { success: 0, failed: 0, errors: [translate("import.noSupportedFiles")] };
   }
 
   let successCount = 0;
@@ -435,7 +439,7 @@ export const importLegacyFiles = async (
             : [];
 
           if (drawings.length === 0) {
-            throw new Error("Legacy export JSON contains no drawings.");
+            throw new Error(translate("import.legacyExportNoDrawings"));
           }
 
           for (let i = 0; i < drawings.length; i += 1) {
@@ -476,7 +480,7 @@ export const importLegacyFiles = async (
               name:
                 typeof d.name === "string" && d.name.trim().length > 0
                   ? d.name
-                  : `Imported Drawing ${i + 1}`,
+                  : translate("import.importedDrawingNumbered", { index: i + 1 }),
               elements: extracted.elements,
               appState: extracted.appState,
               files: extracted.files || null,
@@ -528,7 +532,7 @@ export const importLegacyFiles = async (
           err?.response?.data?.message ||
           err?.response?.data?.error ||
           err?.message ||
-          "Upload failed";
+          translate("import.uploadFailed");
         errors.push(`${file.name}: ${errorMessage}`);
         if (onProgress) onProgress(fileIndex, "error", 0, errorMessage);
       }

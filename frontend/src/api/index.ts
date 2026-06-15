@@ -1,4 +1,5 @@
 import axios from "axios";
+import { translate } from "../i18n";
 import type { Drawing, Collection, DrawingSummary } from "../types";
 import { normalizePreviewSvg } from "../utils/previewSvg";
 
@@ -586,7 +587,7 @@ export const createDrawing = async (
   const response = await api.post<{ id: string }>(
     "/drawings",
     {
-      name: name || "Untitled Drawing",
+      name: name || translate("drawing.untitled"),
       collectionId: collectionId ?? null,
       elements: [],
       appState: {},

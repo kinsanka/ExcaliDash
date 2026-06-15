@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { enUS, zhCN } from "date-fns/locale";
-import { translations, type TranslationParams, type TranslationValue } from "../i18n";
+import {
+  LANGUAGE_STORAGE_KEY,
+  getCurrentLanguage,
+  translations,
+  type TranslationParams,
+  type TranslationValue,
+} from "../i18n";
 
 export type Language = "en" | "zh-CN";
 
@@ -13,8 +19,6 @@ type I18nContextValue = {
   dateLocale: typeof enUS;
   excalidrawLangCode: string;
 };
-
-const LANGUAGE_STORAGE_KEY = "excalidash-language";
 
 const format = (
   value: TranslationValue,
@@ -29,17 +33,7 @@ const format = (
   return value.replace(/\{(\w+)\}/g, (_, key) => String(params[key] ?? `{${key}}`));
 };
 
-const detectLanguage = (): Language => {
-  if (typeof window === "undefined") {
-    return "en";
-  }
-  const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  if (stored === "zh-CN" || stored === "en") {
-    return stored;
-  }
-  const preferred = navigator.language.toLowerCase();
-  return preferred.startsWith("zh") ? "zh-CN" : "en";
-};
+const detectLanguage = (): Language => getCurrentLanguage();
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import type { AdminUser } from './types';
+import { useI18n } from '../../context/I18nContext';
 
 type PasswordResult = {
   email: string;
@@ -23,17 +24,20 @@ export const UserActionModals: React.FC<UserActionModalsProps> = ({
   onCancelImpersonation,
   onCopyPassword,
   onClosePassword,
-}) => (
+}) => {
+  const { t } = useI18n();
+
+  return (
   <>
     <ConfirmModal
       isOpen={Boolean(impersonateTarget)}
-      title="Start impersonation?"
+      title={t('admin.startImpersonation')}
       message={
         impersonateTarget
-          ? `You will act as ${impersonateTarget.email} until you stop impersonation. Continue?`
+          ? t('admin.impersonationConfirm', { email: impersonateTarget.email })
           : ''
       }
-      confirmText="Impersonate"
+      confirmText={t('admin.impersonate')}
       onConfirm={() => {
         if (impersonateTarget) {
           void onConfirmImpersonation(impersonateTarget);
@@ -45,16 +49,12 @@ export const UserActionModals: React.FC<UserActionModalsProps> = ({
 
     <ConfirmModal
       isOpen={Boolean(resetPasswordResult)}
-      title="Temporary password"
+      title={t('admin.tempPasswordTitle')}
       message={
         resetPasswordResult ? (
           <div className="space-y-3">
             <div className="text-xs">
-              Temporary password for{' '}
-              <span className="font-bold text-slate-900 dark:text-neutral-100">
-                {resetPasswordResult.email}
-              </span>
-              . They will be prompted to set a new password after signing in.
+              {t('admin.tempPasswordDesc', { email: resetPasswordResult.email })}
             </div>
             <div className="px-3 py-2 rounded-xl border-2 border-black dark:border-neutral-700 bg-white dark:bg-neutral-900 font-mono text-sm text-slate-900 dark:text-neutral-100 break-all">
               {resetPasswordResult.tempPassword}
@@ -64,8 +64,8 @@ export const UserActionModals: React.FC<UserActionModalsProps> = ({
           ''
         )
       }
-      confirmText="Copy"
-      cancelText="Close"
+      confirmText={t('admin.copy')}
+      cancelText={t('admin.close')}
       isDangerous={false}
       variant="success"
       onConfirm={() => {
@@ -76,4 +76,5 @@ export const UserActionModals: React.FC<UserActionModalsProps> = ({
       onCancel={onClosePassword}
     />
   </>
-);
+  );
+};

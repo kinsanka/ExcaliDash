@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BellOff, ExternalLink, RefreshCw, XCircle } from "lucide-react";
 import * as api from "../api";
+import { useI18n } from "../context/I18nContext";
 
 const CHANNEL_KEY = "excalidash-update-channel";
 const DISMISSED_VERSION_KEY = "excalidash-update-ignored-version";
@@ -90,6 +91,7 @@ const writeCachedInfo = (channel: api.UpdateChannel, info: api.UpdateInfo) => {
 };
 
 export const UpdateBanner: React.FC = () => {
+  const { t } = useI18n();
   const [channel, setChannel] = useState<api.UpdateChannel>(() => readChannel());
   const [info, setInfo] = useState<api.UpdateInfo | null>(() => readCachedInfo(readChannel()));
   const [loading, setLoading] = useState(false);
@@ -144,7 +146,7 @@ export const UpdateBanner: React.FC = () => {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 flex-shrink-0">
-            <span className="text-[10px] font-black uppercase tracking-wider">Update available</span>
+            <span className="text-[10px] font-black uppercase tracking-wider">{t('update.available')}</span>
           </div>
           <div className="min-w-0 flex items-center gap-2">
             <span className="text-sm font-bold text-emerald-950 dark:text-emerald-50 truncate">
@@ -165,11 +167,11 @@ export const UpdateBanner: React.FC = () => {
               setChannel(next);
             }}
             className="h-8 px-2 rounded-lg border border-emerald-200 dark:border-emerald-800/50 bg-white/50 dark:bg-neutral-900/50 text-xs font-bold text-emerald-950 dark:text-emerald-50 outline-none hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors"
-            title="Update channel"
-            aria-label="Update channel"
+            title={t('update.channel')}
+            aria-label={t('update.channel')}
           >
-            <option value="stable">stable</option>
-            <option value="prerelease">prerelease</option>
+            <option value="stable">{t('settings.stable')}</option>
+            <option value="prerelease">{t('settings.prerelease')}</option>
           </select>
 
           {info?.latestUrl ? (
@@ -180,7 +182,7 @@ export const UpdateBanner: React.FC = () => {
               className="h-8 inline-flex items-center justify-center gap-1.5 px-3 rounded-lg bg-emerald-600 dark:bg-emerald-600/80 text-[11px] font-black uppercase tracking-wider text-white hover:bg-emerald-700 dark:hover:bg-emerald-500 transition-all shadow-sm shadow-emerald-900/10"
             >
               <ExternalLink size={14} strokeWidth={2.5} />
-              <span className="hidden sm:inline">Release</span>
+              <span className="hidden sm:inline">{t('update.release')}</span>
             </a>
           ) : null}
 
@@ -193,10 +195,10 @@ export const UpdateBanner: React.FC = () => {
               setClosedVersion(latest);
             }}
             className="h-8 inline-flex items-center justify-center gap-1.5 px-3 rounded-lg bg-white/70 dark:bg-neutral-900/60 border border-emerald-200 dark:border-emerald-800/50 text-[11px] font-black uppercase tracking-wider text-emerald-900 dark:text-emerald-100 hover:bg-white dark:hover:bg-neutral-900 transition-colors"
-            title="Close (will reappear later)"
+            title={t('update.closeLater')}
           >
             <XCircle size={14} strokeWidth={2.5} />
-            <span className="hidden sm:inline">Close</span>
+            <span className="hidden sm:inline">{t('common.close')}</span>
           </button>
 
           <button
@@ -208,10 +210,10 @@ export const UpdateBanner: React.FC = () => {
               setIgnoredVersion(latest);
             }}
             className="h-8 inline-flex items-center justify-center gap-1.5 px-3 rounded-lg bg-emerald-100/70 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800/50 text-[11px] font-black uppercase tracking-wider text-emerald-900 dark:text-emerald-100 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
-            title="Ignore this version"
+            title={t('update.ignoreVersion')}
           >
             <BellOff size={14} strokeWidth={2.5} />
-            <span className="hidden sm:inline">Ignore</span>
+            <span className="hidden sm:inline">{t('common.ignore')}</span>
           </button>
 
           <button
@@ -219,8 +221,8 @@ export const UpdateBanner: React.FC = () => {
             onClick={() => void load(true)}
             disabled={loading}
             className="h-8 w-8 inline-flex items-center justify-center rounded-lg bg-white/70 dark:bg-neutral-900/60 border border-emerald-200 dark:border-emerald-800/50 text-emerald-900 dark:text-emerald-100 hover:bg-white dark:hover:bg-neutral-900 transition-colors disabled:opacity-50"
-            title="Re-check now"
-            aria-label="Re-check now"
+            title={t('update.recheckNow')}
+            aria-label={t('update.recheckNow')}
           >
             <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
           </button>

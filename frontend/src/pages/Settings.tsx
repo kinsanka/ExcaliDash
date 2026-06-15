@@ -55,7 +55,7 @@ export const Settings: React.FC = () => {
     const [backupImportSuccess, setBackupImportSuccess] = useState(false);
     const [backupImportError, setBackupImportError] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
 
-    const appVersion = import.meta.env.VITE_APP_VERSION || 'Unknown version';
+    const appVersion = import.meta.env.VITE_APP_VERSION || t('settings.unknown');
     const buildLabel = import.meta.env.VITE_APP_BUILD_LABEL;
     const isManagedAuthMode = authMode !== 'local';
 
@@ -416,10 +416,12 @@ export const Settings: React.FC = () => {
                     </div>
                     <div className="text-center">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
-                            {imageCompression ? 'Optimized Images' : 'Raw Images'}
+                            {imageCompression ? t('settings.optimizedImages') : t('settings.rawImages')}
                         </h3>
                         <p className="text-xs text-slate-500 dark:text-neutral-400 font-medium max-w-[200px] mx-auto">
-                            {imageCompression ? 'Lossy compression enabled' : 'Lossless (high bandwidth) enabled'}
+                            {imageCompression
+                                ? t('settings.lossyCompressionEnabled')
+                                : t('settings.losslessHighBandwidthEnabled')}
                         </p>
                     </div>
                 </button>

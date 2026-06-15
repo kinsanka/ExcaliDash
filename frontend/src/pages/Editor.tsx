@@ -857,21 +857,21 @@ export const Editor: React.FC = () => {
         const isCrossOrigin = parsedUrl.origin !== window.location.origin;
         if (isCrossOrigin) {
           const ok = window.confirm(
-            `Import library from external site?\n\n${parsedUrl.origin}\n\nOnly continue if you trust this source.`
+            `${t("editor.importLibraryFromExternalSite", { origin: parsedUrl.origin })}\n\n${t("editor.onlyContinueIfTrustedSource")}`
           );
           if (!ok) {
-            toast.info('Library import canceled', { id: 'library-import' });
+            toast.info(t("editor.libraryImportCanceled"), { id: 'library-import' });
             window.history.replaceState(null, '', window.location.pathname + window.location.search);
             return;
           }
         }
 
         if (!import.meta.env.DEV && parsedUrl.protocol === 'http:' && !isLocalhost) {
-          throw new Error('Insecure http:// library URL is not allowed');
+          throw new Error(t("editor.insecureLibraryUrl"));
         }
 
         console.log('[Editor] Importing library from URL:', parsedUrl.toString());
-        toast.loading('Importing library...', { id: 'library-import' });
+        toast.loading(t("editor.importingLibrary"), { id: 'library-import' });
 
         const response = await fetch(parsedUrl.toString(), { credentials: 'omit' });
         if (!response.ok) {
@@ -880,7 +880,7 @@ export const Editor: React.FC = () => {
 
         const blob = await response.blob();
         if (blob.size > 10 * 1024 * 1024) {
-          throw new Error('Library file is too large');
+          throw new Error(t("editor.libraryFileTooLarge"));
         }
 
         await excalidrawAPI.current.updateLibrary({
@@ -895,18 +895,18 @@ export const Editor: React.FC = () => {
           await api.updateLibrary([...updatedItems]);
         }
 
-        toast.success('Library imported successfully', { id: 'library-import' });
+        toast.success(t("editor.libraryImportedSuccessfully"), { id: 'library-import' });
         console.log('[Editor] Library import complete');
 
         window.history.replaceState(null, '', window.location.pathname + window.location.search);
       } catch (err) {
         console.error('[Editor] Failed to import library:', err);
-        toast.error('Failed to import library', { id: 'library-import' });
+        toast.error(t("editor.failedImportLibrary"), { id: 'library-import' });
       }
     };
 
     importLibraryFromUrl();
-  }, [isReady]);
+  }, [isReady, t, user]);
 
   const buildEmptyScene = useCallback(() => ({
     elements: [],
@@ -1144,7 +1144,7 @@ export const Editor: React.FC = () => {
         // Share sessions / anonymous users can't persist library to the server.
         return;
       }
-      toast.error("Failed to save library");
+      toast.error(t("editor.failedSaveLibrary"));
     }
   };
 
