@@ -7,6 +7,7 @@ import * as api from '../api';
 import { getPasswordPolicy, validatePassword } from '../utils/passwordPolicy';
 import { PasswordRequirements } from '../components/PasswordRequirements';
 import { useI18n } from '../context/I18nContext';
+import { AuthStatusErrorPanel } from '../components/AuthStatusErrorPanel';
 
 export const Register: React.FC = () => {
   const { t } = useI18n();
@@ -20,6 +21,9 @@ export const Register: React.FC = () => {
   const {
     register,
     authEnabled,
+    registrationEnabled,
+    authStatusError,
+    retryAuthStatus,
     oidcEnabled,
     oidcEnforced,
     oidcProvider,
@@ -57,6 +61,7 @@ export const Register: React.FC = () => {
   };
 
   useEffect(() => {
+    if (authStatusError) return;
     if (authLoading || authEnabled === null) return;
     if (authOnboardingRequired) {
       navigate('/auth-setup', { replace: true });
@@ -70,10 +75,28 @@ export const Register: React.FC = () => {
       navigate('/', { replace: true });
       return;
     }
+    if (!bootstrapRequired && !registrationEnabled) {
+      navigate('/login', { replace: true });
+      return;
+    }
     if (isAuthenticated) {
       navigate('/', { replace: true });
     }
-  }, [authEnabled, authLoading, authOnboardingRequired, isAuthenticated, navigate, oidcEnforced]);
+  }, [
+    authEnabled,
+    authLoading,
+    authOnboardingRequired,
+    authStatusError,
+    bootstrapRequired,
+    isAuthenticated,
+    navigate,
+    oidcEnforced,
+    registrationEnabled,
+  ]);
+
+  if (authStatusError) {
+    return <AuthStatusErrorPanel message={authStatusError} onRetry={retryAuthStatus} fullScreen />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

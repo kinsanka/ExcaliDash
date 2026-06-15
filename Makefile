@@ -35,13 +35,54 @@ install: ## Install all dependencies (frontend, backend, e2e)
 	cd e2e && npm install
 	@echo "All dependencies installed."
 
-dev: ## Start backend+frontend in a tmux split screen
+dev: ## Start backend+frontend in a tmux split screen (single-user local mode)
 	@command -v tmux >/dev/null 2>&1 || { \
 		echo "tmux is required for 'make dev'"; \
 		echo "Install tmux and try again."; \
 		exit 1; \
 	}
 	@SESSION="excalidash-dev"; \
+	if tmux has-session -t $$SESSION 2>/dev/null; then \
+		echo "Using existing tmux session: $$SESSION"; \
+	else \
+		echo "Creating tmux session: $$SESSION"; \
+		tmux new-session -d -s $$SESSION -c "$(CURDIR)" "cd backend && PORT=8001 AUTH_MODE=local EXCALIDASH_DEV_SINGLE_USER=true npm run dev"; \
+		tmux split-window -h -t $$SESSION:0 -c "$(CURDIR)" "cd frontend && VITE_DEV_BACKEND_URL=http://localhost:8001 npm run dev"; \
+		tmux select-layout -t $$SESSION:0 even-horizontal; \
+		tmux select-pane -t $$SESSION:0.0; \
+	fi; \
+	if [ -n "$$TMUX" ]; then \
+		tmux switch-client -t $$SESSION; \
+	else \
+		tmux attach -t $$SESSION; \
+	fi
+
+dev-stop: ## Stop the tmux dev session
+	@STOPPED=0; \
+	for SESSION in excalidash-dev excalidash-dev-auth; do \
+		if tmux has-session -t $$SESSION 2>/dev/null; then \
+			tmux kill-session -t $$SESSION; \
+			echo "Stopped tmux session: $$SESSION"; \
+			STOPPED=1; \
+		fi; \
+	done; \
+	if [ $$STOPPED -eq 0 ]; then \
+		echo "No ExcaliDash tmux dev sessions are running"; \
+	fi
+
+dev-frontend: ## Start frontend dev server only
+	cd frontend && npm run dev
+
+dev-backend: ## Start backend dev server only
+	cd backend && npm run dev
+
+dev-auth: ## Start backend+frontend in tmux using backend/.env auth settings
+	@command -v tmux >/dev/null 2>&1 || { \
+		echo "tmux is required for 'make dev-auth'"; \
+		echo "Install tmux and try again."; \
+		exit 1; \
+	}
+	@SESSION="excalidash-dev-auth"; \
 	if tmux has-session -t $$SESSION 2>/dev/null; then \
 		echo "Using existing tmux session: $$SESSION"; \
 	else \
@@ -56,21 +97,6 @@ dev: ## Start backend+frontend in a tmux split screen
 	else \
 		tmux attach -t $$SESSION; \
 	fi
-
-dev-stop: ## Stop the tmux dev session
-	@SESSION="excalidash-dev"; \
-	if tmux has-session -t $$SESSION 2>/dev/null; then \
-		tmux kill-session -t $$SESSION; \
-		echo "Stopped tmux session: $$SESSION"; \
-	else \
-		echo "No tmux session named $$SESSION is running"; \
-	fi
-
-dev-frontend: ## Start frontend dev server only
-	cd frontend && npm run dev
-
-dev-backend: ## Start backend dev server only
-	cd backend && npm run dev
 
 build: ## Build frontend and backend for production
 	@echo "Building backend..."

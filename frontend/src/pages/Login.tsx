@@ -7,6 +7,7 @@ import { USER_KEY } from '../utils/impersonation';
 import { getPasswordPolicy, validatePassword } from '../utils/passwordPolicy';
 import { PasswordRequirements } from '../components/PasswordRequirements';
 import { useI18n } from '../context/I18nContext';
+import { AuthStatusErrorPanel } from '../components/AuthStatusErrorPanel';
 
 export const Login: React.FC = () => {
   const { t, language } = useI18n();
@@ -20,6 +21,9 @@ export const Login: React.FC = () => {
     login,
     logout,
     authEnabled,
+    registrationEnabled,
+    authStatusError,
+    retryAuthStatus,
     oidcEnabled,
     oidcEnforced,
     oidcProvider,
@@ -44,6 +48,7 @@ export const Login: React.FC = () => {
   }, [oidcErrorCode, oidcErrorMessage, t]);
 
   useEffect(() => {
+    if (authStatusError) return;
     if (authLoading || authEnabled === null) return;
     if (authOnboardingRequired) {
       navigate('/auth-setup', { replace: true });
@@ -71,6 +76,7 @@ export const Login: React.FC = () => {
     authEnabled,
     authLoading,
     authOnboardingRequired,
+    authStatusError,
     bootstrapRequired,
     isAuthenticated,
     mustReset,
@@ -79,6 +85,10 @@ export const Login: React.FC = () => {
     oidcErrorCode,
     oidcReturnTo,
   ]);
+
+  if (authStatusError) {
+    return <AuthStatusErrorPanel message={authStatusError} onRetry={retryAuthStatus} fullScreen />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,7 +162,7 @@ export const Login: React.FC = () => {
                 ? t("auth.signInWithProvider", { provider: oidcProvider || 'OIDC' })
                 : t("auth.signInToAccount")}
           </h2>
-          {!mustReset && !oidcEnforced ? (
+          {!mustReset && !oidcEnforced && registrationEnabled ? (
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               Or{' '}
               <Link
@@ -161,6 +171,10 @@ export const Login: React.FC = () => {
               >
                 {t("auth.createNewAccount")}
               </Link>
+            </p>
+          ) : !mustReset && !oidcEnforced ? (
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              Sign in with an existing account.
             </p>
           ) : mustReset ? (
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
