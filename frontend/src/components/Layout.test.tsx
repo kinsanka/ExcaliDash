@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+import { I18nProvider } from "../context/I18nContext";
 
 vi.mock("./Sidebar", () => ({
   Sidebar: () => <div data-testid="sidebar">sidebar</div>,
@@ -26,18 +27,20 @@ describe("Layout", () => {
     const removeSpy = vi.spyOn(document, "removeEventListener");
 
     const { unmount } = render(
-      <MemoryRouter>
-        <Layout
-          collections={[]}
-          selectedCollectionId={undefined}
-          onSelectCollection={() => {}}
-          onCreateCollection={() => {}}
-          onEditCollection={() => {}}
-          onDeleteCollection={() => {}}
-        >
-          <div>content</div>
-        </Layout>
-      </MemoryRouter>
+      <I18nProvider>
+        <MemoryRouter>
+          <Layout
+            collections={[]}
+            selectedCollectionId={undefined}
+            onSelectCollection={() => {}}
+            onCreateCollection={() => {}}
+            onEditCollection={() => {}}
+            onDeleteCollection={() => {}}
+          >
+            <div>content</div>
+          </Layout>
+        </MemoryRouter>
+      </I18nProvider>
     );
 
     fireEvent.mouseDown(screen.getByTitle("Drag to resize sidebar"));

@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { I18nProvider } from "../context/I18nContext";
 import { Login } from "./Login";
 import { Register } from "./Register";
 
@@ -49,9 +50,11 @@ describe("auth pages block on auth status failures", () => {
     mockUseAuth.mockReturnValue(baseAuthState);
 
     render(
-      <MemoryRouter initialEntries={["/login"]}>
-        <Login />
-      </MemoryRouter>
+      <I18nProvider>
+        <MemoryRouter initialEntries={["/login"]}>
+          <Login />
+        </MemoryRouter>
+      </I18nProvider>
     );
 
     expect(screen.getByText(/Unable to reach the backend API/i)).toBeInTheDocument();
@@ -63,9 +66,11 @@ describe("auth pages block on auth status failures", () => {
     mockUseAuth.mockReturnValue(baseAuthState);
 
     render(
-      <MemoryRouter initialEntries={["/register"]}>
-        <Register />
-      </MemoryRouter>
+      <I18nProvider>
+        <MemoryRouter initialEntries={["/register"]}>
+          <Register />
+        </MemoryRouter>
+      </I18nProvider>
     );
 
     expect(screen.getByText(/Unable to reach the backend API/i)).toBeInTheDocument();

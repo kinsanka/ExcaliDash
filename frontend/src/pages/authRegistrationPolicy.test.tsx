@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { I18nProvider } from "../context/I18nContext";
 import { Login } from "./Login";
 import { Register } from "./Register";
 
@@ -61,9 +62,11 @@ describe("auth page registration policy", () => {
     });
 
     render(
-      <MemoryRouter initialEntries={["/login"]}>
-        <Login />
-      </MemoryRouter>
+      <I18nProvider>
+        <MemoryRouter initialEntries={["/login"]}>
+          <Login />
+        </MemoryRouter>
+      </I18nProvider>
     );
 
     expect(screen.queryByRole("link", { name: /create a new account/i })).not.toBeInTheDocument();
@@ -77,9 +80,11 @@ describe("auth page registration policy", () => {
     });
 
     render(
-      <MemoryRouter initialEntries={["/register"]}>
-        <Register />
-      </MemoryRouter>
+      <I18nProvider>
+        <MemoryRouter initialEntries={["/register"]}>
+          <Register />
+        </MemoryRouter>
+      </I18nProvider>
     );
 
     expect(mockNavigate).toHaveBeenCalledWith("/login", { replace: true });
