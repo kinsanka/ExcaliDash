@@ -10,7 +10,7 @@ import { useI18n } from '../context/I18nContext';
 import { AuthStatusErrorPanel } from '../components/AuthStatusErrorPanel';
 
 export const Register: React.FC = () => {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -145,7 +145,7 @@ export const Register: React.FC = () => {
               </span>
             ) : (
               <>
-                Or{' '}
+                {t("common.or")}{language === 'zh-CN' ? '' : ' '}
                 <Link
                   to="/login"
                   className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"

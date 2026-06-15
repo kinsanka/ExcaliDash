@@ -164,7 +164,7 @@ export const Login: React.FC = () => {
           </h2>
           {!mustReset && !oidcEnforced && registrationEnabled ? (
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              Or{' '}
+              {t("common.or")}{language === 'zh-CN' ? '' : ' '}
               <Link
                 to="/register"
                 className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
@@ -174,7 +174,7 @@ export const Login: React.FC = () => {
             </p>
           ) : !mustReset && !oidcEnforced ? (
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              Sign in with an existing account.
+              {t("auth.signInExistingAccountHint")}
             </p>
           ) : mustReset ? (
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
